@@ -1890,7 +1890,7 @@ export default function App() {
             >
               {/* 顶部控制栏（全屏下点击正文可自动隐藏/呼出） */}
               {!hideReaderChrome && (
-                <div className="px-4 py-3 border-b border-black/10 flex flex-wrap items-center justify-between gap-2 shrink-0">
+                <div className="px-4 pt-[max(12px,env(safe-area-inset-top))] pb-3 border-b border-black/10 flex flex-wrap items-center justify-between gap-2 shrink-0">
                   <div className="flex items-center gap-2">
                     <button onClick={handleCloseReader} className="px-3 py-1.5 rounded-xl bg-black/5 hover:bg-black/10 text-xs font-bold flex items-center gap-1 transition">
                       <ArrowLeft className="w-3.5 h-3.5" />保存退出
@@ -2012,7 +2012,7 @@ export default function App() {
                   }
                   if (isReaderFullscreen) setHideReaderChrome((h) => !h);
                 }}
-                className={`flex-1 ${readerMode === 'page' ? 'overflow-hidden' : 'overflow-y-auto'} px-5 sm:px-14 py-4 sm:py-8 leading-loose relative select-none flex flex-col justify-between`}
+                className={`flex-1 ${readerMode === 'page' ? 'overflow-hidden' : 'overflow-y-auto'} px-5 sm:px-14 pt-[max(20px,env(safe-area-inset-top))] pb-4 sm:py-8 leading-loose relative select-none flex flex-col justify-between`}
                 style={{ fontSize: `${readerFontSize}px` }}
               >
                 <div className="max-w-3xl w-full mx-auto flex-1 flex flex-col justify-between">
@@ -2025,31 +2025,31 @@ export default function App() {
                       </div>
 
                       {/* 翻页控制栏 */}
-                      <div className="pt-3 mt-2 border-t border-black/10 flex items-center justify-between gap-3 text-xs shrink-0">
+                      <div className="pt-3 mt-2 border-t border-black/10 flex items-center justify-between gap-2 text-xs shrink-0">
                         <button
                           disabled={safePageIdx <= 0}
                           onClick={() => updateBookPageProgress(activeBook.id, safePageIdx - 1, totalPages)}
-                          className="px-4 py-2 rounded-xl bg-black/10 hover:bg-black/15 disabled:opacity-30 font-bold transition"
+                          className="px-3 py-2 rounded-xl bg-black/10 hover:bg-black/15 disabled:opacity-30 font-bold transition whitespace-nowrap shrink-0"
                         >
                           ← 上一页
                         </button>
-                        <div className="flex-1 max-w-xs flex items-center gap-2">
+                        <div className="flex-1 min-w-0 max-w-xs flex items-center gap-1.5">
                           <input
                             type="range"
                             min={0}
                             max={Math.max(0, totalPages - 1)}
                             value={safePageIdx}
                             onChange={(e) => updateBookPageProgress(activeBook.id, Number(e.target.value), totalPages)}
-                            className="flex-1 accent-indigo-600"
+                            className="flex-1 min-w-0 accent-indigo-600"
                           />
-                          <span className="font-bold whitespace-nowrap">
-                            第 {safePageIdx + 1} / {totalPages} 页
+                          <span className="font-bold whitespace-nowrap text-[11px] shrink-0">
+                            {safePageIdx + 1}/{totalPages}
                           </span>
                         </div>
                         <button
                           disabled={safePageIdx >= totalPages - 1}
                           onClick={() => updateBookPageProgress(activeBook.id, safePageIdx + 1, totalPages)}
-                          className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 text-white font-bold transition"
+                          className="px-3 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-30 text-white font-bold transition whitespace-nowrap shrink-0"
                         >
                           下一页 →
                         </button>
