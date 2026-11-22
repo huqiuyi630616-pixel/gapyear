@@ -1940,16 +1940,6 @@ export default function App() {
                 </div>
               )}
 
-              {/* 全屏纯净模式下右上角悬浮呼出工具栏按钮 */}
-              {hideReaderChrome && (
-                <button
-                  onClick={() => setHideReaderChrome(false)}
-                  className="fixed top-3 right-3 z-30 px-3 py-1.5 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-md text-xs font-bold transition"
-                >
-                  显示菜单 · 第 {safePageIdx + 1}/{totalPages} 页
-                </button>
-              )}
-
               {/* 章节目录抽屉（支持一键跳转） */}
               {showTocDrawer && (
                 <div className="absolute top-14 left-3 bottom-16 w-64 sm:w-72 bg-white/95 backdrop-blur-md text-slate-800 rounded-2xl shadow-2xl border border-slate-200 z-20 flex flex-col overflow-hidden">
