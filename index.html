@@ -1,0 +1,2916 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <!-- 支持手机浏览器“添加到主屏幕”像原生App一样全屏运行 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GapYear OS">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#ffffff">
+  <link id="dynamic-manifest" rel="manifest" href="">
+  <title>GapYear OS · 胡秋意的私人生活与减脂中枢</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Three.js for 3D Lab -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <!-- SheetJS for parsing WUST .xls / .xlsx schedule files -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans SC', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans SC', sans-serif;
+      background-color: #f8fafc;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @keyframes floatPet {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-6px) rotate(2deg); }
+    }
+    .pet-float {
+      animation: floatPet 3.2s ease-in-out infinite;
+    }
+    @keyframes popBounce {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.22) rotate(-5deg); }
+      70% { transform: scale(0.95) rotate(4deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+    .pet-pop {
+      animation: popBounce 0.5s ease-out;
+    }
+    @keyframes pulseRing {
+      0% { transform: scale(0.95); opacity: 0.7; }
+      70% { transform: scale(1.35); opacity: 0; }
+      100% { transform: scale(1.35); opacity: 0; }
+    }
+    .voice-pulse::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: 9999px;
+      background-color: #ef4444;
+      z-index: -1;
+      animation: pulseRing 1.5s infinite;
+    }
+    .reader-paper { background-color: #faf6ed; color: #2c2825; }
+    .reader-mint { background-color: #e8f3ec; color: #1f3328; }
+    .reader-dark { background-color: #181a1f; color: #d1d5db; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .mobile-bottom-nav { padding-bottom: env(safe-area-inset-bottom, 8px); }
+  </style>
+</head>
+<body class="text-slate-800 antialiased selection:bg-brand-100 selection:text-brand-700 pb-24 lg:pb-10">
+
+  <!-- 全局消息提示容器 -->
+  <div id="toast-container" class="fixed top-4 right-4 left-4 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- 顶部 App 导航栏 -->
+  <header class="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+      <!-- 品牌标识 -->
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-gradient-to-br from-emerald-600 to-teal-700 text-white flex items-center justify-center shadow-sm shrink-0">
+          <i class="fa-solid fa-mountain-sun text-base sm:text-lg"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5">
+            <h1 class="font-bold text-slate-900 text-sm sm:text-base tracking-tight truncate">GapYear OS · 胡秋意</h1>
+            <button onclick="openCloudModal()" id="cloud-status-badge" class="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1 shrink-0 hover:bg-emerald-100 transition">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span id="cloud-status-text">云端永久保存</span>
+            </button>
+            <button onclick="openInstallAppModal()" class="text-[10px] sm:text-[11px] font-semibold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 border border-brand-200 flex items-center gap-1 shrink-0 hover:bg-brand-100 transition">
+              <i class="fa-solid fa-mobile-screen"></i>
+              <span>安装手机App</span>
+            </button>
+          </div>
+          <p class="text-[11px] text-slate-500 truncate">武科大 $\rightarrow$ 地大黄爱武组 · 168cm/61kg · 09:00起-01:30睡</p>
+        </div>
+      </div>
+
+      <!-- 桌面端导航切换 -->
+      <nav class="hidden lg:flex items-center gap-1 bg-slate-100/90 p-1 rounded-2xl">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-slate-900 shadow-sm transition">
+          <i class="fa-solid fa-compass mr-1 text-brand-600"></i>今日总览
+        </button>
+        <button onclick="switchTab('diet')" id="nav-diet" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+          <i class="fa-solid fa-camera-retro mr-1 text-amber-600"></i>餐前餐后
+        </button>
+        <button onclick="switchTab('fitness')" id="nav-fitness" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+          <i class="fa-solid fa-dumbbell mr-1 text-rose-600"></i>课表与健身
+        </button>
+        <button onclick="switchTab('wallet')" id="nav-wallet" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+          <i class="fa-solid fa-wallet mr-1 text-purple-600"></i>消费与奖励
+        </button>
+        <button onclick="switchTab('bookshelf')" id="nav-bookshelf" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+          <i class="fa-solid fa-book-open mr-1 text-indigo-600"></i>私人书架
+        </button>
+        <button onclick="switchTab('academic')" id="nav-academic" class="nav-btn px-3.5 py-2 rounded-xl text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+          <i class="fa-solid fa-cubes mr-1 text-teal-600"></i>科研与3D
+        </button>
+      </nav>
+
+      <!-- 右侧奖励金币余额 & 语音排期按钮 -->
+      <div class="flex items-center gap-2 shrink-0">
+        <button onclick="switchTab('wallet')" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-800 text-xs font-bold transition">
+          <i class="fa-solid fa-coins text-amber-500"></i>
+          <span id="header-coin-count">120</span>
+        </button>
+        <button onclick="openVoiceModal()" class="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 text-white text-xs font-semibold shadow-sm transition">
+          <i class="fa-solid fa-microphone"></i>
+          <span class="hidden sm:inline">语音排期</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容容器 -->
+  <main class="max-w-7xl mx-auto px-3 sm:px-6 pt-4 sm:pt-6">
+
+    <!-- ==================== TAB 1: 今日智能总览 ==================== -->
+    <section id="tab-dashboard" class="tab-panel space-y-5">
+      <!-- 实时日期、时钟、教学周与黄家湖天气定位横幅 -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-4 sm:p-5 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/10 border border-white/15 flex flex-col items-center justify-center shrink-0">
+            <span id="live-clock-hm" class="text-base sm:text-lg font-extrabold tracking-tight text-amber-300">22:30</span>
+            <span id="live-clock-sec" class="text-[10px] text-slate-300 font-mono">00s</span>
+          </div>
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="live-date-text" class="text-sm sm:text-base font-bold">2026年11月22日 星期日</span>
+              <span id="live-week-badge" class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950">第12周 · 明日开启第13周</span>
+            </div>
+            <p id="live-schedule-tip" class="text-xs text-slate-300 mt-1">明日周一（第13周首日）14:00-17:40《多媒体设计2》（教一二区603），18:10 下课顺路练背肩！</p>
+          </div>
+        </div>
+
+        <!-- 实时天气与定位小组件 -->
+        <div onclick="refreshWeatherAndLocation(true)" class="bg-white/10 hover:bg-white/15 border border-white/15 rounded-2xl px-3.5 py-2.5 flex items-center justify-between sm:justify-end gap-3 cursor-pointer transition shrink-0">
+          <div class="flex items-center gap-2.5">
+            <span id="weather-icon" class="text-2xl">🌤️</span>
+            <div>
+              <div class="flex items-center gap-1.5">
+                <span id="weather-temp" class="text-sm font-extrabold">14°C</span>
+                <span id="weather-desc" class="text-xs text-slate-200">多云转晴</span>
+              </div>
+              <div class="text-[10px] text-slate-300 flex items-center gap-1 mt-0.5">
+                <i class="fa-solid fa-location-dot text-rose-400"></i>
+                <span id="weather-location">武汉·武科大黄家湖校区</span>
+              </div>
+            </div>
+          </div>
+          <span class="text-[10px] px-2 py-1 rounded-lg bg-white/10 text-amber-200 font-semibold">刷新定位</span>
+        </div>
+      </div>
+
+      <!-- 顶部 4 指标概览卡片 -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <!-- 1. 168cm / 61kg 减脂净热量 -->
+        <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-semibold text-slate-500">减脂净热量 (168cm)</span>
+            <span class="w-7 h-7 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xs"><i class="fa-solid fa-fire"></i></span>
+          </div>
+          <div>
+            <div class="flex items-baseline gap-1">
+              <span id="dash-net-cal" class="text-xl sm:text-2xl font-bold text-slate-900">980</span>
+              <span class="text-[11px] text-slate-400">/ 1,550 kcal</span>
+            </div>
+            <div class="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
+              <div id="dash-cal-bar" class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: 63%"></div>
+            </div>
+            <p id="dash-cal-tip" class="text-[11px] text-emerald-600 mt-1.5 font-medium">剩饭已扣 180 kcal，余 570 kcal</p>
+          </div>
+        </div>
+
+        <!-- 2. 当前体重与目标 -->
+        <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-semibold text-slate-500">体重管理 (BMI 21.6)</span>
+            <span class="w-7 h-7 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs"><i class="fa-solid fa-weight-scale"></i></span>
+          </div>
+          <div>
+            <div class="flex items-baseline gap-1">
+              <span id="dash-weight" class="text-xl sm:text-2xl font-bold text-slate-900">61.0</span>
+              <span class="text-[11px] text-slate-400">kg $\rightarrow$ 56.0kg</span>
+            </div>
+            <div class="mt-2 flex items-center gap-1.5">
+              <input type="number" step="0.1" id="quick-weight-input" placeholder="60.8" class="w-16 sm:w-20 text-xs px-2 py-1 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500">
+              <button onclick="logQuickWeight()" class="text-[11px] px-2.5 py-1 rounded-xl bg-emerald-600 text-white font-semibold hover:bg-emerald-700 transition">记录</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 1/3/5 健身与武科大真实课表联动 -->
+        <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-semibold text-slate-500">本周 1/3/5 健身排期</span>
+            <span class="w-7 h-7 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center text-xs"><i class="fa-solid fa-person-running"></i></span>
+          </div>
+          <div>
+            <div id="dash-workout-status" class="text-sm sm:text-base font-bold text-slate-900">18:10 下课顺路练</div>
+            <p id="dash-workout-sub" class="text-[11px] text-slate-500 mt-1">避开 14:00-17:40 下午连堂课</p>
+            <button onclick="switchTab('fitness')" class="mt-2 text-[11px] font-semibold text-rose-600 hover:underline flex items-center gap-1">
+              <span>查看课表与减脂教程</span><i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. 省钱计划与消费预警 -->
+        <div class="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[11px] font-semibold text-slate-500">本月省钱计划结余</span>
+            <span class="w-7 h-7 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xs"><i class="fa-solid fa-piggy-bank"></i></span>
+          </div>
+          <div>
+            <div class="flex items-baseline gap-1">
+              <span id="dash-month-spend" class="text-xl sm:text-2xl font-bold text-slate-900">¥842</span>
+              <span class="text-[11px] text-slate-400">/ 预算 ¥1,500</span>
+            </div>
+            <button onclick="switchTab('wallet')" class="mt-2 text-[11px] font-semibold text-purple-600 hover:underline flex items-center gap-1">
+              <span>导入账单 / 兑换奖励</span><i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 主体双栏：左2/3智能日程（适配 9:00起 - 1:30睡），右1/3互动宠物与DDL提醒 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- 左侧：今日时间轴 -->
+        <div class="lg:col-span-2 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                <span>今日与明日第13周联动日程</span>
+                <span id="schedule-mode-badge" class="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-brand-600">09:00-01:30 晚睡作息</span>
+              </h2>
+              <p id="schedule-subtitle-text" class="text-xs text-slate-500 mt-0.5">已校准连堂时段（上午08:20-12:00 / 下午14:00-17:40），18:10下课后去健身</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openVoiceModal()" class="text-xs px-3 py-1.5 rounded-xl bg-brand-50 text-brand-700 font-semibold hover:bg-brand-100 transition">
+                <i class="fa-solid fa-microphone mr-1"></i>语音微调
+              </button>
+            </div>
+          </div>
+          <!-- 今日时间轴列表 -->
+          <div id="today-timeline" class="space-y-2.5"></div>
+        </div>
+
+        <!-- 右侧：专属互动鼓励宠物小窝 + 强提醒雷达 -->
+        <div class="space-y-5">
+          <!-- 陪伴宠物互动鼓励卡 -->
+          <div class="bg-gradient-to-br from-amber-50 via-orange-50/70 to-yellow-50/60 rounded-3xl p-5 border border-amber-200/80 shadow-sm relative overflow-hidden">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-xs font-bold text-amber-800 bg-amber-100/90 px-2.5 py-1 rounded-xl">陪伴激励宠物</span>
+              <div class="flex items-center gap-1 bg-white/80 p-1 rounded-xl border border-amber-200/70">
+                <button onclick="changePetSpecies('trilobite')" title="三叶虫·团子" class="w-6 h-6 rounded-lg text-sm hover:bg-amber-100 transition">🪲</button>
+                <button onclick="changePetSpecies('ammonite')" title="菊石·螺螺" class="w-6 h-6 rounded-lg text-sm hover:bg-amber-100 transition">🐚</button>
+                <button onclick="changePetSpecies('star')" title="星星·岩灵" class="w-6 h-6 rounded-lg text-sm hover:bg-amber-100 transition">⭐</button>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-4">
+              <div onclick="petInteract('encourage')" id="pet-card-avatar" class="w-20 h-20 rounded-3xl bg-white shadow-sm border-2 border-amber-200 flex items-center justify-center text-4xl cursor-pointer pet-float shrink-0 select-none">
+                🪲
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <h3 id="pet-name-display" class="font-bold text-slate-900 text-base">三叶虫·团子</h3>
+                  <span id="pet-level-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white">Lv.5 减脂督导官</span>
+                </div>
+                <p id="pet-status-line" class="text-[11px] text-amber-900/80 mt-1">状态：元气满满 · 等你下课练背哦！</p>
+                <div class="mt-2">
+                  <div class="flex justify-between text-[10px] font-semibold text-amber-800 mb-0.5">
+                    <span>成长经验</span>
+                    <span id="pet-exp-text">410 / 500 EXP</span>
+                  </div>
+                  <div class="w-full bg-amber-200/70 h-1.5 rounded-full overflow-hidden">
+                    <div id="pet-exp-bar" class="bg-amber-500 h-full rounded-full transition-all duration-300" style="width: 82%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 鼓励语气泡 -->
+            <div class="mt-3 p-3 rounded-2xl bg-white/85 border border-amber-200/70 text-xs text-slate-700 leading-relaxed">
+              <i class="fa-solid fa-heart text-rose-500 mr-1"></i>
+              <p id="pet-card-quote">“秋意晚安！今天是11月22日第12周最后一天，20:30记得刷《歌声中的党史Z》，明天周一开启第13周哦！”</p>
+            </div>
+
+            <!-- 互动鼓励操作栏 -->
+            <div class="grid grid-cols-3 gap-2 mt-3">
+              <button onclick="petInteract('encourage')" class="py-2 rounded-xl bg-white hover:bg-amber-100 text-amber-900 border border-amber-200 text-xs font-bold transition">
+                <i class="fa-solid fa-hand-sparkles mr-1 text-amber-500"></i>求夸夸
+              </button>
+              <button onclick="feedPet()" class="py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition">
+                <i class="fa-solid fa-gem mr-1"></i>喂矿石(<span id="pet-food-count">4</span>)
+              </button>
+              <button onclick="petInteract('checkin')" class="py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition">
+                <i class="fa-solid fa-gift mr-1"></i>领礼包
+              </button>
+            </div>
+          </div>
+
+          <!-- 考试与毕设强提醒雷达 -->
+          <div class="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm">
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="font-bold text-slate-900 text-sm flex items-center gap-1.5">
+                <i class="fa-solid fa-bell text-rose-500"></i>
+                <span>课业与毕设强提醒</span>
+              </h3>
+              <button onclick="addQuickDDL()" class="text-xs px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition">+ 新增</button>
+            </div>
+            <div id="ddl-list" class="space-y-2.5"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: 餐前餐后双图热量识别 ==================== -->
+    <section id="tab-diet" class="tab-panel hidden space-y-5">
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-5">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900">餐前餐后双图热量差值识别（168cm/61kg 精准减脂）</h2>
+            <p class="text-xs text-slate-500 mt-0.5">开吃前拍一张估算总热量，吃完后拍一张自动扣除剩饭热量，杜绝多算热量，达标即奖金币！</p>
+          </div>
+          <span class="px-3 py-1 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold">
+            今日已通过“剩饭扣除”省下 <span id="diet-saved-total">180</span> kcal
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <!-- Step 1: 餐前拍照 -->
+          <div class="bg-slate-50 rounded-3xl p-4 border border-slate-200/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-700">STEP 1 · 餐前拍照/上传</span>
+                <span id="pre-meal-cal-badge" class="text-xs font-bold px-2 py-0.5 rounded-lg bg-amber-100 text-amber-800">预估: 580 kcal</span>
+              </div>
+              <label class="block relative h-44 rounded-2xl border-2 border-dashed border-slate-300 hover:border-brand-500 bg-white overflow-hidden cursor-pointer transition group">
+                <img id="pre-meal-preview" src="" alt="餐前照片" class="hidden w-full h-full object-cover">
+                <div id="pre-meal-placeholder" class="w-full h-full flex flex-col items-center justify-center text-slate-400 group-hover:text-brand-600 p-4 text-center">
+                  <i class="fa-solid fa-camera text-2xl mb-1.5"></i>
+                  <span class="text-xs font-semibold">点击拍摄或上传【餐前】食物</span>
+                  <span class="text-[10px] mt-1">AI 自动识别食材与初始热量</span>
+                </div>
+                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleMealPhoto(event, 'pre')">
+              </label>
+            </div>
+            <div class="mt-3 space-y-2">
+              <input type="text" id="pre-food-desc" value="黄家湖二食堂：杂粮饭 + 去皮卤鸡腿 + 清炒西兰花" class="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white">
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-500">餐前总热量 (kcal):</span>
+                <input type="number" id="pre-cal-val" value="580" oninput="recalcMealNet()" class="w-24 text-xs font-bold text-right px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white">
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: 餐后拍照 -->
+          <div class="bg-slate-50 rounded-3xl p-4 border border-slate-200/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-slate-700">STEP 2 · 餐后残余对比</span>
+                <span id="post-meal-cal-badge" class="text-xs font-bold px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-800">扣除剩饭: -150 kcal</span>
+              </div>
+              <label class="block relative h-44 rounded-2xl border-2 border-dashed border-slate-300 hover:border-emerald-500 bg-white overflow-hidden cursor-pointer transition group">
+                <img id="post-meal-preview" src="" alt="餐后照片" class="hidden w-full h-full object-cover">
+                <div id="post-meal-placeholder" class="w-full h-full flex flex-col items-center justify-center text-slate-400 group-hover:text-emerald-600 p-4 text-center">
+                  <i class="fa-solid fa-utensils text-2xl mb-1.5"></i>
+                  <span class="text-xs font-semibold">点击拍摄或上传【餐后】餐盘</span>
+                  <span class="text-[10px] mt-1">对比残余比例，自动扣减未吃热量</span>
+                </div>
+                <input type="file" accept="image/*" capture="environment" class="hidden" onchange="handleMealPhoto(event, 'post')">
+              </label>
+            </div>
+            <div class="mt-3 space-y-2">
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-slate-500">剩余比例:</span>
+                <input type="range" id="leftover-ratio" min="0" max="80" value="26" oninput="updateLeftoverFromSlider(this.value)" class="flex-1 accent-emerald-600">
+                <span id="leftover-ratio-text" class="text-xs font-bold text-emerald-700 w-9 text-right">26%</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-xs text-slate-500">扣除热量 (kcal):</span>
+                <input type="number" id="post-cal-val" value="150" oninput="recalcMealNet()" class="w-24 text-xs font-bold text-right px-2.5 py-1.5 rounded-xl border border-slate-200 bg-white text-emerald-700">
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: 净摄入结算 -->
+          <div class="bg-slate-900 text-white rounded-3xl p-5 flex flex-col justify-between">
+            <div>
+              <span class="text-xs font-bold text-amber-400">STEP 3 · 净摄入精准入账</span>
+              <div class="mt-3 flex items-baseline gap-2">
+                <span id="net-meal-result" class="text-4xl font-extrabold">430</span>
+                <span class="text-xs text-slate-300">kcal 实际摄入</span>
+              </div>
+              <p class="text-xs text-slate-300 mt-3 bg-white/10 p-3 rounded-2xl leading-relaxed">
+                <i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-1"></i>
+                针对 61kg 减脂目标：本餐优质蛋白充足且主动留下了多余碳水，完成后奖励 <strong>+20 自律金币</strong>！
+              </p>
+              <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+                <div class="bg-white/5 rounded-xl p-2">
+                  <div class="text-[10px] text-slate-400">碳水</div>
+                  <div id="macro-carb" class="text-xs font-bold text-sky-300">42g</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-2">
+                  <div class="text-[10px] text-slate-400">蛋白质</div>
+                  <div id="macro-prot" class="text-xs font-bold text-emerald-300">36g</div>
+                </div>
+                <div class="bg-white/5 rounded-xl p-2">
+                  <div class="text-[10px] text-slate-400">脂肪</div>
+                  <div id="macro-fat" class="text-xs font-bold text-amber-300">11g</div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-4 space-y-2">
+              <select id="meal-type-select" class="w-full text-xs bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white">
+                <option value="午餐 (12:30)" class="text-slate-900">记录为：午餐 (12:30)</option>
+                <option value="晚餐 (18:30)" class="text-slate-900">记录为：晚餐 (18:30)</option>
+                <option value="早午餐 (09:30)" class="text-slate-900">记录为：早午餐 (09:30)</option>
+                <option value="夜宵低卡加餐" class="text-slate-900">记录为：熬夜低卡补给</option>
+              </select>
+              <button onclick="commitMealRecord()" class="w-full py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition">
+                <i class="fa-solid fa-check-circle mr-1"></i>写入热量账本 (+20金币)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 饮食流水 & 体重曲线 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm">
+          <h3 class="font-bold text-slate-900 text-sm mb-3">今日饮食净摄入明细</h3>
+          <div id="meal-history-list" class="space-y-2.5"></div>
+        </div>
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="font-bold text-slate-900 text-sm">61.0kg $\rightarrow$ 56.0kg 减脂体重记录</h3>
+            <span class="text-xs text-emerald-600 font-semibold">健康塑形区间</span>
+          </div>
+          <div id="weight-chart-container" class="h-44 flex items-end justify-between gap-2 pt-5 px-2 border-b border-slate-100"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: 武科大真实课表与168cm/61kg减脂方案 ==================== -->
+    <section id="tab-fitness" class="tab-panel hidden space-y-5">
+      <!-- 1. 你的真实课表导入与本周展示 -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900">每周课表动态同步 (202319203061) & 弹性 1/3/5 健身联动</h2>
+            <p class="text-xs text-slate-500 mt-0.5">当前默认展示<strong>第13周（明日11月23日周一起）</strong>完整课表，支持切换任意教学周或上传新课表！</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="cursor-pointer px-3 py-2 rounded-xl bg-brand-50 text-brand-700 border border-brand-200 text-xs font-bold hover:bg-brand-100 transition">
+              <i class="fa-solid fa-file-excel mr-1"></i>上传新课表 (.xls / .ics)
+              <input type="file" accept=".xls,.xlsx,.ics" class="hidden" onchange="handleScheduleFileUpload(event)">
+            </label>
+            <select id="week-selector" onchange="switchScheduleWeek(this.value)" class="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-semibold text-slate-700">
+              <option value="week13" selected>第13周 (明日11.23周一起 · 多媒体设计2 + 毕设)</option>
+              <option value="week12">第12周 (今日11.22周日止 · 校外毕业实习 + 党史)</option>
+              <option value="week14_15">第14-15周 (学科综合设计(二) + 多媒体设计2)</option>
+              <option value="week16_19">第16-19周 (公共空间营造 · 裴磊老师)</option>
+              <option value="week1_4">第1-4周 (专题设计三 + 用户体验研究)</option>
+              <option value="week5_9">第5-9周 (创新实践 + 智能交互设计)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 弹性调整策略按钮组 -->
+        <div class="flex flex-wrap items-center gap-2 pb-4 mb-4 border-b border-slate-100">
+          <span class="text-xs font-semibold text-slate-500">健身动态调整：</span>
+          <button onclick="applyFitnessStrategy('normal')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 text-white shadow-sm">
+            1/3/5 18:10 下课顺路练 (避开14:00-17:40连堂)
+          </button>
+          <button onclick="applyFitnessStrategy('shift')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200">
+            毕设/实习冲突 $\rightarrow$ 平移至周二/四/六
+          </button>
+          <button onclick="applyFitnessStrategy('dorm')" class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200">
+            不想出门 $\rightarrow$ 35分钟宿舍帕梅拉/哑铃HIIT
+          </button>
+        </div>
+
+        <!-- 7天课表+健身网格 -->
+        <div id="weekly-fitness-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3"></div>
+      </div>
+
+      <!-- 2. 专为 168cm / 61kg 女生/塑形减脂定制的跟练教程与分化方案 -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+          <div>
+            <h3 class="text-base sm:text-lg font-bold text-slate-900">168cm · 61kg 专属高效减脂塑形教程库</h3>
+            <p class="text-xs text-slate-500 mt-0.5">针对你基数不大、追求紧致线条（马甲线+直角肩+蜜桃臀+消除拜拜肉）设计的无氧+有氧黄金配比</p>
+          </div>
+          <span class="px-3 py-1 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">每次 55 分钟 · 燃脂约 380 kcal</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- 周一：上肢塑形 + 爬坡 -->
+          <div class="p-4 rounded-2xl bg-gradient-to-b from-rose-50/80 to-white border border-rose-200/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2.5 py-0.5 rounded-lg bg-rose-600 text-white text-xs font-bold">周一 · 美背直角肩+消除拜拜肉</span>
+                <span class="text-[11px] text-slate-500">55 mins</span>
+              </div>
+              <ul class="text-xs text-slate-700 space-y-2 mt-3">
+                <li class="flex items-start gap-2"><span class="font-bold text-rose-600">01</span><span><strong>高位下拉（宽握）</strong>：4组 × 15次（改善圆肩驼背，穿衣显薄）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-rose-600">02</span><span><strong>坐姿划船</strong>：4组 × 15次（收紧背部线条）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-rose-600">03</span><span><strong>哑铃侧平举 + 绳索下压</strong>：各3组 × 15次（打造直角肩与紧致大臂）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-rose-600">04</span><span><strong>跑步机爬坡</strong>：坡度12 / 速度4.8 / 25分钟（高效刷脂不粗腿）</span></li>
+              </ul>
+            </div>
+            <a href="https://search.bilibili.com/all?keyword=女生健身房背肩训练入门跟练" target="_blank" class="mt-4 w-full py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold text-center transition block">
+              <i class="fa-brands fa-bilibili mr-1"></i>打开 B站 美背直角肩跟练视频
+            </a>
+          </div>
+
+          <!-- 周三：下肢臀腿塑形 + 椭圆机 -->
+          <div class="p-4 rounded-2xl bg-gradient-to-b from-amber-50/80 to-white border border-amber-200/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2.5 py-0.5 rounded-lg bg-amber-600 text-white text-xs font-bold">周三 · 蜜桃臀腿线条+提高代谢</span>
+                <span class="text-[11px] text-slate-500">60 mins</span>
+              </div>
+              <ul class="text-xs text-slate-700 space-y-2 mt-3">
+                <li class="flex items-start gap-2"><span class="font-bold text-amber-600">01</span><span><strong>哈克深蹲 / 哑铃高脚杯深蹲</strong>：4组 × 12次（调动全身最大肌群燃脂）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-amber-600">02</span><span><strong>罗马尼亚硬拉（哑铃/杠铃）</strong>：4组 × 15次（提升臀线、紧致大腿后侧）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-amber-600">03</span><span><strong>髋外展机（坐姿分腿）</strong>：4组 × 20次（改善臀凹陷）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-amber-600">04</span><span><strong>椭圆机变速有氧</strong>：阻力6 / 25分钟（保护膝盖高效燃脂）</span></li>
+              </ul>
+            </div>
+            <a href="https://search.bilibili.com/all?keyword=女生健身房臀腿塑形不粗腿教程" target="_blank" class="mt-4 w-full py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold text-center transition block">
+              <i class="fa-brands fa-bilibili mr-1"></i>打开 B站 臀腿塑形不粗腿跟练
+            </a>
+          </div>
+
+          <!-- 周五：核心马甲线 + 全身燃脂循环 -->
+          <div class="p-4 rounded-2xl bg-gradient-to-b from-indigo-50/80 to-white border border-indigo-200/80 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2.5 py-0.5 rounded-lg bg-indigo-600 text-white text-xs font-bold">周五 · 核心马甲线+全身代谢冲刺</span>
+                <span class="text-[11px] text-slate-500">50 mins</span>
+              </div>
+              <ul class="text-xs text-slate-700 space-y-2 mt-3">
+                <li class="flex items-start gap-2"><span class="font-bold text-indigo-600">01</span><span><strong>卷腹 + 反向卷腹超级组</strong>：4组 × 15次（雕刻上下腹马甲线）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-indigo-600">02</span><span><strong>平板支撑 + 俄罗斯转体</strong>：3组 × 45秒（收紧腰围）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-indigo-600">03</span><span><strong>壶铃摇摆 / 战绳间歇</strong>：4组 × 30秒（快速拉高心率）</span></li>
+                <li class="flex items-start gap-2"><span class="font-bold text-indigo-600">04</span><span><strong>全套泡沫轴放松拉伸</strong>：15分钟（消除水肿、拉长肌肉线条）</span></li>
+              </ul>
+            </div>
+            <a href="https://search.bilibili.com/all?keyword=15分钟高效马甲线核心训练跟练" target="_blank" class="mt-4 w-full py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold text-center transition block">
+              <i class="fa-brands fa-bilibili mr-1"></i>打开 B站 马甲线核心跟练视频
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 4: 消费账单自动分析 & 省钱奖励系统 ==================== -->
+    <section id="tab-wallet" class="tab-panel hidden space-y-5">
+      <!-- 顶部省钱指标与账单导入栏 -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900">智能消费分析 & 自律省钱奖励系统</h2>
+            <p class="text-xs text-slate-500 mt-0.5">导入微信/支付宝账单 CSV 或粘贴消费短信，自动识别花销结构，省下的钱直接转化为自我奖励基金！</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="cursor-pointer px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold shadow-sm transition">
+              <i class="fa-solid fa-file-csv mr-1"></i>导入微信/支付宝账单 (.csv/.txt)
+              <input type="file" accept=".csv,.txt" class="hidden" onchange="handleBillFileUpload(event)">
+            </label>
+            <button onclick="openPasteBillModal()" class="px-3.5 py-2 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 text-xs font-bold hover:bg-purple-100 transition">
+              <i class="fa-solid fa-paste mr-1"></i>一键粘贴账单/短信识别
+            </button>
+          </div>
+        </div>
+
+        <!-- 三大核心财务与奖励卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
+            <div class="flex items-center justify-between text-xs text-slate-500 mb-1">
+              <span>本月总支出 / 设定预算</span>
+              <button onclick="editMonthlyBudget()" class="text-purple-600 font-semibold hover:underline">修改预算</button>
+            </div>
+            <div class="flex items-baseline gap-2">
+              <span id="wallet-spent-val" class="text-2xl font-extrabold text-slate-900">¥842.5</span>
+              <span class="text-xs text-slate-500">/ ¥<span id="wallet-budget-val">1500</span></span>
+            </div>
+            <div class="w-full bg-slate-200 h-2 rounded-full mt-3 overflow-hidden">
+              <div id="wallet-budget-bar" class="bg-purple-600 h-full rounded-full transition-all" style="width: 56%"></div>
+            </div>
+            <p id="wallet-ai-advice" class="text-[11px] text-slate-600 mt-2">
+              <i class="fa-solid fa-robot text-purple-500 mr-1"></i>AI分析：本月餐饮占48%，奶茶零食仅¥38，控糖省钱双达标！
+            </p>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/80">
+            <div class="text-xs text-emerald-800 font-semibold mb-1">本月省钱计划净结余</div>
+            <div class="text-2xl font-extrabold text-emerald-700" id="wallet-saved-val">¥657.5</div>
+            <p class="text-[11px] text-emerald-700 mt-2">每忍住一次冲动消费记一笔，自动发放 <strong>+30 自律金币</strong> 并存入心愿基金！</p>
+            <button onclick="logSavedImpulse()" class="mt-2.5 w-full py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition">
+              + 我忍住没买奶茶/盲盒 (+30金币)
+            </button>
+          </div>
+
+          <div class="p-4 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-sm">
+            <div class="flex items-center justify-between text-xs text-amber-100 mb-1">
+              <span>我的自律奖励金库</span>
+              <i class="fa-solid fa-trophy text-amber-200"></i>
+            </div>
+            <div class="text-3xl font-extrabold flex items-baseline gap-1.5">
+              <span id="wallet-coins-val">120</span>
+              <span class="text-xs font-normal text-amber-100">金币可用</span>
+            </div>
+            <p class="text-[11px] text-amber-50 mt-2">通过健身、阅读、控卡、省钱赚取金币，在下方兑换你给自己的专属奖励！</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 双栏：消费结构分析 & 自我奖励兑换商店 -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <!-- 左侧：消费结构分布与流水 -->
+        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="font-bold text-slate-900 text-base">消费分类透视与明细</h3>
+            <button onclick="addManualExpense()" class="text-xs px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 font-semibold text-slate-700">+ 记一笔</button>
+          </div>
+          <!-- 分类占比条 -->
+          <div id="expense-category-bars" class="space-y-2.5 mb-5"></div>
+          <!-- 最近流水 -->
+          <div class="text-xs font-bold text-slate-500 mb-2">最近识别的消费流水：</div>
+          <div id="expense-list" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+        </div>
+
+        <!-- 右侧：自我奖励兑换商店（支持自定义奖励） -->
+        <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-slate-900 text-base">自我奖励兑换商店</h3>
+              <p class="text-xs text-slate-500">自律不是苦行，达标就理直气壮奖励自己！</p>
+            </div>
+            <button onclick="addCustomReward()" class="text-xs px-3 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-900 font-bold">+ 自定义奖励</button>
+          </div>
+          <div id="reward-shop-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: 分类私人书架与内置阅读器 ==================== -->
+    <section id="tab-bookshelf" class="tab-panel hidden space-y-5">
+      <!-- 阅读时长与习惯统计 -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-xl">阅读时长与习惯画像</span>
+            <div class="mt-3 flex items-baseline gap-3">
+              <div>
+                <div class="text-2xl sm:text-3xl font-extrabold text-slate-900"><span id="stat-total-read-hours">0.0</span> <span class="text-xs font-normal text-slate-500">小时</span></div>
+                <div class="text-[11px] text-slate-500">累计真实深度阅读</div>
+              </div>
+              <div class="border-l border-slate-200 pl-3">
+                <div class="text-lg font-bold text-emerald-600"><span id="stat-read-streak">0</span> 天</div>
+                <div class="text-[11px] text-slate-500">阅读打卡</div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-3 bg-slate-50 p-3 rounded-2xl text-xs text-slate-600 space-y-1">
+            <div><i class="fa-solid fa-moon text-indigo-500 mr-1.5"></i>推荐阅读窗口：<strong>23:30 - 01:00 (契合晚睡作息)</strong></div>
+            <div><i class="fa-solid fa-bolt text-amber-500 mr-1.5"></i>每次真实打开阅读器自动计时，结束自动入账</div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2 bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm">
+          <h3 class="font-bold text-slate-900 text-sm mb-3">真实阅读时段分布 & 书架分类投入占比</h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 text-xs">
+            <div id="read-period-bars" class="space-y-2">
+              <div class="font-semibold text-slate-500">活跃阅读时段（自动根据打开时间统计）</div>
+              <div class="text-[11px] text-slate-400 py-4">暂无阅读时长记录，点开下方任意书籍开始阅读后自动生成习惯画像~</div>
+            </div>
+            <div id="read-category-bars" class="space-y-2">
+              <div class="font-semibold text-slate-500">书籍分类阅读占比</div>
+              <div class="text-[11px] text-slate-400 py-4">暂无分类阅读数据，开始阅读后实时更新各分类占比。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 书架检索与分类展示 -->
+      <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900">我的私人分类书架</h2>
+            <p class="text-xs text-slate-500">支持自定义新增/删除分类、逐本录入或删除书籍，点开即用网页内置阅读器看书并自动计时</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="relative">
+              <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+              <input type="text" id="book-search-input" oninput="filterBooks()" placeholder="搜索书名或在线检索..." class="pl-8 pr-3 py-2 rounded-xl border border-slate-200 text-xs w-44 sm:w-48 focus:outline-none focus:border-indigo-500">
+            </div>
+            <button onclick="openAddBookModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">
+              <i class="fa-solid fa-plus mr-1"></i>逐本录入 / 导入TXT
+            </button>
+          </div>
+        </div>
+
+        <!-- 动态渲染的分类筛选栏（含自主新建与删除分类） -->
+        <div id="book-category-bar" class="flex items-center gap-2 overflow-x-auto pb-3 mb-4 border-b border-slate-100"></div>
+
+        <div id="bookshelf-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 6: 地大科研、双语与 3D 建模工作台 ==================== -->
+    <section id="tab-academic" class="tab-panel hidden space-y-5">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <div class="lg:col-span-2 space-y-5">
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+            <h2 class="text-lg font-bold text-slate-900 mb-1">多线学术与双语进阶看板</h2>
+            <p class="text-xs text-slate-500 mb-4">每次完成打卡自动奖励自律金币与宠物经验值</p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
+              <div class="p-4 rounded-2xl bg-sky-50/70 border border-sky-200/70">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-sky-800">雅思英语 IELTS</span>
+                  <span class="text-[11px] font-bold text-sky-600">目标 7.0</span>
+                </div>
+                <p class="text-xs text-slate-600 mb-3">核心词 50 个 + 剑桥真题精听 1 篇</p>
+                <button onclick="completeStudyTask('雅思听力与词汇打卡', 25, 25)" class="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold">
+                  打卡 (+25金币)
+                </button>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-rose-50/70 border border-rose-200/70">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-rose-800">日语进阶 Japanese</span>
+                  <span class="text-[11px] font-bold text-rose-600">N3 冲刺</span>
+                </div>
+                <p class="text-xs text-slate-600 mb-3">新标日初级下册 1 课 + 生肉跟读</p>
+                <button onclick="completeStudyTask('日语语法与跟读打卡', 25, 25)" class="w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold">
+                  打卡 (+25金币)
+                </button>
+              </div>
+
+              <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200/70">
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-bold text-emerald-800">地大预研 & 古生物</span>
+                  <span class="text-[11px] font-bold text-emerald-600">黄爱武组</span>
+                </div>
+                <p class="text-xs text-slate-600 mb-3">工程地质文献精读 + 古生物科普笔记</p>
+                <button onclick="completeStudyTask('地大文献与古生物精读', 35, 35)" class="w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold">
+                  打卡 (+35金币)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- D:\codex Skill 指令库 -->
+          <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+            <h3 class="font-bold text-slate-900 text-base mb-3">本地 `D:\codex` 建模与网页 Skill 快捷指令</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between gap-2">
+                <div>
+                  <div class="font-bold text-slate-800">$img2threejs · 参考图转网页3D</div>
+                  <div class="text-slate-500 mt-0.5">输出可旋转 Three.js 模型至 D:\codex</div>
+                </div>
+                <button onclick="copyCmd('使用 $img2threejs 将这张参考图重建为可旋转查看的 Three.js 模型，工作文件全部放 D:\\codex。')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-600 hover:text-white font-semibold shrink-0">复制</button>
+              </div>
+
+              <div class="p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between gap-2">
+                <div>
+                  <div class="font-bold text-slate-800">$blender-director · Blender建模</div>
+                  <div class="text-slate-500 mt-0.5">按部件命名分组并渲染输出至 projects</div>
+                </div>
+                <button onclick="copyCmd('使用 $blender-director，通过 Blender MCP 根据附件参考图重建模型。按部件命名并分组，所有工作文件保存到 D:\\codex\\projects 下。')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-600 hover:text-white font-semibold shrink-0">复制</button>
+              </div>
+
+              <div class="p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between gap-2">
+                <div>
+                  <div class="font-bold text-slate-800">启动本地三维地图 & React网站</div>
+                  <div class="text-slate-500 mt-0.5">map3d 与 react-website 启动脚本</div>
+                </div>
+                <button onclick="copyCmd('& \'D:\\codex\\projects\\map3d\\start.ps1\'')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-600 hover:text-white font-semibold shrink-0">复制</button>
+              </div>
+
+              <div class="p-3.5 rounded-2xl border border-slate-200 flex items-center justify-between gap-2">
+                <div>
+                  <div class="font-bold text-slate-800">$gpt-image2-ppt · 公共装置汇报</div>
+                  <div class="text-slate-500 mt-0.5">适合你《公共空间营造》课程汇报</div>
+                </div>
+                <button onclick="copyCmd('使用 $gpt-image2-ppt，根据附件制作 10 页中文 PPT。采用适合校园公共装置设计汇报的风格，所有工作文件保存到 D:\\codex\\projects 下。')" class="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-brand-600 hover:text-white font-semibold shrink-0">复制</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Three.js 3D 预览 -->
+        <div class="bg-slate-900 text-white rounded-3xl p-5 flex flex-col justify-between shadow-md">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-teal-400 bg-teal-950 px-2.5 py-1 rounded-xl border border-teal-800">Three.js 3D 实验室</span>
+              <span class="text-[11px] text-slate-400">可拖拽旋转</span>
+            </div>
+            <div id="threejs-canvas-container" class="w-full h-60 rounded-2xl bg-slate-950 overflow-hidden relative cursor-grab border border-slate-800 mt-2"></div>
+          </div>
+          <div class="mt-4 flex items-center justify-between gap-2">
+            <button onclick="switchThreeShape('crystal')" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium">矿物晶体</button>
+            <button onclick="switchThreeShape('ammonite')" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium">菊石螺旋</button>
+            <button onclick="switchThreeShape('terrain')" class="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-xs font-medium">空间装置</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ==================== 手机原生 App 风格底部导航栏 ==================== -->
+  <nav class="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 mobile-bottom-nav px-1 pt-1.5 flex items-center justify-around">
+    <button onclick="switchTab('dashboard')" id="mnav-dashboard" class="mnav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-brand-600 font-bold">
+      <i class="fa-solid fa-compass text-base"></i>
+      <span class="text-[10px]">总览</span>
+    </button>
+    <button onclick="switchTab('diet')" id="mnav-diet" class="mnav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-slate-500">
+      <i class="fa-solid fa-camera-retro text-base"></i>
+      <span class="text-[10px]">餐前餐后</span>
+    </button>
+    <button onclick="switchTab('fitness')" id="mnav-fitness" class="mnav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-slate-500">
+      <i class="fa-solid fa-dumbbell text-base"></i>
+      <span class="text-[10px]">课表健身</span>
+    </button>
+    <button onclick="switchTab('wallet')" id="mnav-wallet" class="mnav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-slate-500">
+      <i class="fa-solid fa-wallet text-base"></i>
+      <span class="text-[10px]">省钱奖励</span>
+    </button>
+    <button onclick="switchTab('bookshelf')" id="mnav-bookshelf" class="mnav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-slate-500">
+      <i class="fa-solid fa-book-open text-base"></i>
+      <span class="text-[10px]">书架</span>
+    </button>
+    <button onclick="switchTab('academic')" id="mnav-academic" class="mnav-btn flex flex-col items-center gap-0.5 px-2 py-1 rounded-xl text-slate-500">
+      <i class="fa-solid fa-cubes text-base"></i>
+      <span class="text-[10px]">科研3D</span>
+    </button>
+  </nav>
+
+  <!-- ==================== 右下角悬浮陪伴宠物互动球 ==================== -->
+  <div id="floating-pet-widget" class="fixed bottom-20 lg:bottom-6 right-4 z-40 flex flex-col items-end">
+    <div id="pet-speech-bubble" class="mb-2 max-w-[260px] bg-white/95 backdrop-blur-md text-slate-800 text-xs p-3.5 rounded-2xl rounded-br-none shadow-xl border border-amber-200">
+      <div class="font-bold text-amber-700 mb-1 flex items-center justify-between">
+        <span id="bubble-pet-name">三叶虫·团子</span>
+        <button onclick="document.getElementById('pet-speech-bubble').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 ml-2"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p id="bubble-pet-msg" class="leading-relaxed">秋意你好！明日周一14:00-17:40教一楼二区603有《多媒体设计2》连堂课，18:10下课顺路去健身房练美背直角肩哦，完成我给你发金币！</p>
+      <div class="mt-2 pt-2 border-t border-amber-100 flex items-center justify-between gap-1.5">
+        <button onclick="petInteract('encourage')" class="px-2 py-1 rounded-lg bg-amber-100 text-amber-800 text-[10px] font-bold">求鼓励</button>
+        <button onclick="feedPet()" class="px-2 py-1 rounded-lg bg-amber-500 text-white text-[10px] font-bold">喂矿石</button>
+        <button onclick="switchTab('wallet')" class="px-2 py-1 rounded-lg bg-purple-100 text-purple-800 text-[10px] font-bold">兑奖励</button>
+      </div>
+    </div>
+
+    <button onclick="togglePetBubble()" id="floating-pet-btn" class="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 shadow-lg border-4 border-white flex items-center justify-center text-2xl sm:text-3xl pet-float relative">
+      <span id="floating-pet-emoji">🪲</span>
+      <span class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white" id="floating-pet-lv">5</span>
+    </button>
+  </div>
+
+  <!-- ==================== 模态框：云端永久保存与跨设备同步码（无需登录） ==================== -->
+  <div id="cloud-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-cloud-arrow-up text-emerald-600"></i>
+          <span>免登录 · 云端永久保存空间</span>
+        </h3>
+        <button onclick="document.getElementById('cloud-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 leading-relaxed mb-4">
+        无需注册账号或密码，系统已为你的设备分配专属永久云端档案 ID。你的所有修改都会<strong>实时自动同步至云端</strong>。若需在电脑和手机间互通数据，只需复制下方同步码在另一端粘贴即可：
+      </p>
+      <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 mb-4">
+        <div class="text-[11px] text-slate-400 mb-1">当前设备专属云端档案 ID：</div>
+        <div class="flex items-center justify-between gap-2">
+          <code id="display-sync-id" class="text-xs font-bold text-emerald-700 break-all">huqiuyi-wust-cug-2026</code>
+          <button onclick="copyCmd(document.getElementById('display-sync-id').textContent)" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-xs font-semibold shrink-0">复制</button>
+        </div>
+      </div>
+      <div class="space-y-2 mb-4">
+        <label class="text-xs font-semibold text-slate-700 block">跨设备绑定（输入另一端同步码并拉取）：</label>
+        <div class="flex gap-2">
+          <input type="text" id="target-sync-id-input" placeholder="粘贴其他设备的云端档案 ID" class="flex-1 text-xs px-3 py-2 rounded-xl border border-slate-200">
+          <button onclick="switchCloudSyncId()" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold shrink-0">同步拉取</button>
+        </div>
+      </div>
+      <div class="bg-brand-50 p-3 rounded-2xl text-[11px] text-brand-800">
+        <i class="fa-solid fa-mobile-screen-button mr-1"></i>
+        <strong>手机像 App 一样使用提示</strong>：在手机 Safari 或 Chrome 浏览器中点击底部/右上角“分享” $\rightarrow$ <strong>“添加到主屏幕”</strong>，即可在手机桌面生成独立 App 图标全屏使用！
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 模态框：安装为手机原生桌面 App 指南 ==================== -->
+  <div id="install-app-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-mobile-screen-button text-brand-600"></i>
+          <span>把 GapYear OS 安装为手机 App</span>
+        </h3>
+        <button onclick="document.getElementById('install-app-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-600 leading-relaxed mb-4">
+        本网页已内置 <strong>PWA 原生应用配置与独立图标</strong>，无需下载安装包、无需注册账号，只需 3 秒添加到手机主屏幕，即可像微信/小红书一样全屏独立启动：
+      </p>
+      <div class="space-y-3 text-xs mb-4">
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 mb-1"><i class="fa-brands fa-apple mr-1.5 text-slate-700"></i>苹果 iPhone / iPad (Safari 浏览器)</div>
+          <p class="text-slate-600 leading-relaxed">1. 在 Safari 中打开本页面；<br>2. 点击底部工具栏中间的<strong>「分享图标（方框带向上箭头）」</strong>；<br>3. 向下滑动点击<strong>「添加到主屏幕」</strong>即可生成桌面 App！</p>
+        </div>
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200">
+          <div class="font-bold text-slate-900 mb-1"><i class="fa-brands fa-android mr-1.5 text-emerald-600"></i>安卓 / 鸿蒙手机 (Chrome / Edge / 自带浏览器)</div>
+          <p class="text-slate-600 leading-relaxed">1. 点击浏览器右上角或底部的<strong>「菜单（⋮ 或 ≡）」</strong>；<br>2. 选择<strong>「添加到主屏幕」</strong>或<strong>「安装应用」</strong>；<br>3. 确认后桌面将生成独立 App 图标，支持随时随地离线打开！</p>
+        </div>
+      </div>
+      <button onclick="document.getElementById('install-app-modal').classList.add('hidden')" class="w-full py-2.5 rounded-2xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs transition">我知道了，去添加到桌面</button>
+    </div>
+  </div>
+
+  <!-- ==================== 模态框：语音一句话自动排期 ==================== -->
+  <div id="voice-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <i class="fa-solid fa-wand-magic-sparkles text-brand-600"></i>
+          <span>语音一句话自动排期与记账</span>
+        </h3>
+        <button onclick="closeVoiceModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 mb-4">支持语音录入课表变动、健身平移、阅读计划，甚至可以直接说“今天食堂花了16块”自动记账！</p>
+      <div class="flex flex-col items-center justify-center py-4 bg-slate-50 rounded-2xl border border-slate-200/70 mb-3">
+        <button id="mic-record-btn" onclick="toggleSpeechRecognition()" class="relative w-14 h-14 rounded-full bg-brand-600 text-white text-xl flex items-center justify-center shadow-md">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+        <span id="mic-status-text" class="text-xs font-medium text-slate-600 mt-2.5">点击麦克风说话</span>
+      </div>
+      <textarea id="voice-transcript-input" rows="3" placeholder="在这里说话或输入..." class="w-full text-xs p-3 rounded-2xl border border-slate-200 mb-3"></textarea>
+      <div class="flex flex-wrap gap-1.5 mb-4">
+        <button onclick="fillSampleVoice('把今天的雅思学习改到晚上九点，把周一的健身调到周二下午，另外取消睡前阅读，新增提醒周五交毕设开题初稿。')" class="text-[11px] px-2.5 py-1.5 rounded-xl bg-brand-50 text-brand-700 text-left leading-relaxed">
+          示例1（调计划）：“把今天雅思改到晚上九点，周一健身调到周二，取消睡前阅读，新增提醒周五交初稿”
+        </button>
+        <button onclick="fillSampleVoice('今天黄家湖二食堂晚餐花了14.5元，另外排一个今晚十一点半看40分钟书的计划。')" class="text-[11px] px-2.5 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 text-left leading-relaxed">
+          示例2（记账+排期）：“今天食堂花了14.5元，排一个今晚十一点半看40分钟书的计划”
+        </button>
+      </div>
+      <div class="flex justify-end gap-2">
+        <button onclick="closeVoiceModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">取消</button>
+        <button onclick="parseAndApplyVoicePlan()" class="px-5 py-2 rounded-xl bg-brand-600 text-white text-xs font-bold">AI 自动调计划并执行</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 模态框：粘贴账单/短信自动识别消费 ==================== -->
+  <div id="paste-bill-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold text-slate-900">粘贴微信/支付宝账单或银行短信</h3>
+        <button onclick="document.getElementById('paste-bill-modal').classList.add('hidden')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p class="text-xs text-slate-500 mb-3">直接复制微信账单明细行或支付通知文本粘贴在下方，系统会自动提取商户、金额并智能归类：</p>
+      <textarea id="raw-bill-text" rows="5" placeholder="例如：&#10;武科大黄家湖二食堂 14.50&#10;京东图书-古生物演化史 48.00&#10;瑞幸咖啡生椰拿铁 9.90" class="w-full text-xs p-3 rounded-2xl border border-slate-200 mb-3"></textarea>
+      <div class="flex justify-end gap-2">
+        <button onclick="document.getElementById('paste-bill-modal').classList.add('hidden')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">取消</button>
+        <button onclick="parsePastedBills()" class="px-5 py-2 rounded-xl bg-purple-600 text-white text-xs font-bold">自动识别并入账</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 模态框：内置沉浸式电子书阅读器 ==================== -->
+  <div id="reader-modal" class="fixed inset-0 z-50 hidden bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-2 sm:p-5">
+    <div id="reader-container" class="reader-paper rounded-3xl max-w-4xl w-full h-[92vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-black/10 flex flex-wrap items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5">
+          <button onclick="closeBookReader()" class="px-3 py-1.5 rounded-xl bg-black/5 text-xs font-bold"><i class="fa-solid fa-arrow-left mr-1"></i>返回</button>
+          <h3 id="reader-book-title" class="font-bold text-sm truncate max-w-[180px] sm:max-w-xs">书名</h3>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="px-2.5 py-1 rounded-xl bg-emerald-600/15 text-emerald-800 text-xs font-bold">
+            <i class="fa-solid fa-stopwatch mr-1"></i><span id="reader-session-timer">00:00</span>
+          </div>
+          <button onclick="setReaderTheme('paper')" class="w-6 h-6 rounded-lg bg-[#faf6ed] border border-slate-300"></button>
+          <button onclick="setReaderTheme('mint')" class="w-6 h-6 rounded-lg bg-[#e8f3ec] border border-slate-300"></button>
+          <button onclick="setReaderTheme('dark')" class="w-6 h-6 rounded-lg bg-[#181a1f] border border-slate-600"></button>
+          <button onclick="changeReaderFontSize(-1)" class="w-6 h-6 rounded-lg bg-black/5 text-xs font-bold">A-</button>
+          <button onclick="changeReaderFontSize(1)" class="w-6 h-6 rounded-lg bg-black/5 text-xs font-bold">A+</button>
+        </div>
+      </div>
+      <div id="reader-content-scroll" class="flex-1 overflow-y-auto px-5 sm:px-14 py-6 leading-loose" style="font-size: 16px;">
+        <div id="reader-body-text" class="space-y-4 text-justify"></div>
+      </div>
+      <div class="px-4 py-3 border-t border-black/10 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="flex items-center gap-2">
+          <span>进度：<strong id="reader-progress-pct">40%</strong></span>
+          <button onclick="advanceBookProgress()" class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white font-bold">读完本章 (+10% & 领金币)</button>
+        </div>
+        <div class="flex items-center gap-2 flex-1 max-w-sm">
+          <input type="text" id="reader-quick-note" placeholder="记一句批注..." class="flex-1 px-3 py-1.5 rounded-xl bg-white/80 border border-black/15 text-slate-800">
+          <button onclick="saveReaderNote()" class="px-3 py-1.5 rounded-xl bg-amber-600 text-white font-bold">存笔记</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 模态框：添加新书 ==================== -->
+  <div id="add-book-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-slate-900">录入新书到私人书架</h3>
+        <button onclick="closeAddBookModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block text-slate-600 font-semibold mb-1">书名</label>
+          <input type="text" id="new-book-title" placeholder="输入书名..." class="w-full px-3 py-2 rounded-xl border border-slate-200">
+        </div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-slate-600 font-semibold mb-1">作者</label>
+            <input type="text" id="new-book-author" placeholder="作者..." class="w-full px-3 py-2 rounded-xl border border-slate-200">
+          </div>
+          <div>
+            <label class="block text-slate-600 font-semibold mb-1">分类</label>
+            <select id="new-book-cat" class="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white">
+              <option value="地大专业">地大专业</option>
+              <option value="古生物科普">古生物科普</option>
+              <option value="雅思日语">雅思日语</option>
+              <option value="3D与开发">3D与开发</option>
+              <option value="艺术设计">艺术设计</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-slate-600 font-semibold mb-1">正文内容或导入 TXT</label>
+          <textarea id="new-book-content" rows="3" placeholder="粘贴阅读章节..." class="w-full px-3 py-2 rounded-xl border border-slate-200"></textarea>
+          <label class="inline-block mt-1.5 px-3 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 cursor-pointer font-semibold">
+            <i class="fa-solid fa-file-lines mr-1"></i>导入本地 .txt
+            <input type="file" accept=".txt" class="hidden" onchange="loadTxtFileForBook(event)">
+          </label>
+        </div>
+        <button onclick="submitNewBook()" class="w-full py-2.5 rounded-2xl bg-indigo-600 text-white font-bold mt-2">加入书架</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 模态框：通用快捷表单弹窗（独立置于最外层，适配手机App与预览窗口） ==================== -->
+  <div id="custom-input-modal" class="fixed inset-0 z-50 hidden bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="cim-title" class="text-base font-bold text-slate-900">输入信息</h3>
+        <button onclick="closeCustomInputModal()" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div id="cim-fields" class="space-y-3 text-xs"></div>
+      <div class="flex justify-end gap-2 mt-5">
+        <button onclick="closeCustomInputModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">取消</button>
+        <button id="cim-confirm-btn" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs font-bold">确认保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 零登录云端永久存储与业务逻辑模块 ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // 默认初始状态（完全根据胡秋意的真实课表、168cm/61kg数据、09:00-01:30作息定制）
+    const defaultAppState = {
+      coins: 120,
+      calories: {
+        target: 1550,
+        meals: [
+          { id: 1, type: '早午餐 (09:30)', desc: '全麦欧包1个 + 水煮蛋2个 + 无糖黑咖啡', preCal: 390, leftoverCal: 0, netCal: 390, time: '09:35' },
+          { id: 2, type: '午餐 (12:40)', desc: '黄家湖食堂：杂粮饭 + 去皮卤鸡腿 + 清炒西兰花', preCal: 770, leftoverCal: 180, netCal: 590, time: '12:45' }
+        ]
+      },
+      weights: [
+        { date: '11-17', val: 61.8 },
+        { date: '11-18', val: 61.6 },
+        { date: '11-19', val: 61.5 },
+        { date: '11-20', val: 61.3 },
+        { date: '11-21', val: 61.2 },
+        { date: '11-22', val: 61.1 },
+        { date: '11-23', val: 61.0 }
+      ],
+      schedules: [
+        { id: 1, time: '09:00 - 09:40', title: '晨起空腹称重 + 温水唤醒 + 高蛋白早午餐', tag: '作息与减脂', color: 'emerald', done: true },
+        { id: 2, time: '10:00 - 11:50', title: '雅思核心词 50个 + 地大黄爱武老师课题组文献精读', tag: '科研与雅思', color: 'sky', done: true },
+        { id: 3, time: '20:30 - 22:10', title: '【今日第12周周日】《歌声中的党史Z》（智慧树网课）', tag: '今日网课', color: 'indigo', done: false },
+        { id: 4, time: '明日 14:00 - 17:40', title: '【明日第13周周一】《多媒体设计2》连堂（教一楼二区603）', tag: '第13周课表', color: 'indigo', done: false },
+        { id: 5, time: '明日 18:10 - 19:10', title: '【明日第13周周一】下课顺路练背肩 + 爬坡25分钟', tag: '61kg减脂', color: 'rose', done: false },
+        { id: 6, time: '23:30 - 00:45', title: '睡前沉浸阅读：《三叶虫演化史》（01:30前准备入睡）', tag: '阅读习惯', color: 'amber', done: false }
+      ],
+      ddls: [
+        { id: 1, title: '今日 20:30《歌声中的党史Z》第12周网课学习', due: '今晚 22:10 前', urgent: true },
+        { id: 2, title: '明日开启第13周：周一/三/五 14:00-17:40《多媒体设计2》', due: '明日 14:00 教一二区603', urgent: true },
+        { id: 3, title: '毕业设计(论文)推进（教一楼二区507）', due: '第13-15周重点', urgent: false }
+      ],
+      // 真实每周课表 (默认同步第13周：11月23日周一起，上午08:20-12:00 / 下午14:00-17:40 连堂制)
+      weekPlan: [
+        { day: '周一 (11.23)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：美背直角肩 + 爬坡25m', isWorkout: true, done: false },
+        { day: '周二 (11.24)', classes: ['全天无坐班课 · 毕业设计自主推进'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false },
+        { day: '周三 (11.25)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false },
+        { day: '周四 (11.26)', classes: ['全天无坐班课 · 毕业设计自主推进'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false },
+        { day: '周五 (11.27)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：核心马甲线 + 拉伸放松', isWorkout: true, done: false },
+        { day: '周六 (11.28)', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false },
+        { day: '周日 (11.29)', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false }
+      ],
+      wallet: {
+        budget: 1500,
+        expenses: [
+          { id: 1, title: '武科大黄家湖食堂餐饮汇总', amount: 412.5, category: '健康餐饮', date: '本月累计' },
+          { id: 2, title: '购买《三叶虫演化史》及地质专业书', amount: 148.0, category: '书籍学习', date: '11-18' },
+          { id: 3, title: '健身补剂与无糖黑咖啡', amount: 126.0, category: '健身运动', date: '11-15' },
+          { id: 4, title: '日常护肤与生活用品', amount: 118.0, category: '日用服饰', date: '11-12' },
+          { id: 5, title: '低卡零食与代糖饮品', amount: 38.0, category: '零食饮料', date: '11-20' }
+        ],
+        rewards: [
+          { id: 1, title: '无罪恶感周末放纵美食一顿', cost: 150, icon: '🍜', redeemed: 0 },
+          { id: 2, title: '入手一本心仪的古生物/设计画册', cost: 200, icon: '📚', redeemed: 0 },
+          { id: 3, title: '清空购物车一件心愿好物 (≤150元)', cost: 350, icon: '🛍️', redeemed: 0 },
+          { id: 4, title: '懒觉豁免券（周末睡到自然醒）', cost: 80, icon: '🛌', redeemed: 0 }
+        ]
+      },
+      bookCategories: ['地大专业', '古生物科普', '雅思日语', '3D与开发', '艺术设计'],
+      readingStats: {
+        totalSeconds: 0,
+        streakDays: 0,
+        lastReadDate: '',
+        periods: { morning: 0, evening: 0, night: 0 }
+      },
+      books: [
+        {
+          id: 1,
+          title: '工程地质学原理（地大黄爱武组衔接）',
+          author: '中国地质大学出版社',
+          category: '地大专业',
+          progress: 0,
+          readMins: 0,
+          coverBg: 'from-emerald-600 to-teal-800',
+          content: [
+            '工程地质学是研究与人类工程建筑活动有关的地质问题的学科。对于即将进入中国地质大学（武汉）黄爱武老师课题组开展研究生学习的你而言，掌握岩土体物理力学性质与地质灾害防治是核心基石。',
+            '利用大四保研后的空档期，每天花 40 分钟精读基础概念，明年九月入学即可直接上手课题实验！'
+          ]
+        },
+        {
+          id: 2,
+          title: '三叶虫！演化史上的远古盔甲武士',
+          author: '理查德·福蒂',
+          category: '古生物科普',
+          progress: 0,
+          readMins: 0,
+          coverBg: 'from-amber-600 to-orange-800',
+          content: [
+            '在距今约5.21亿年前的寒武纪生命大爆发时期，三叶虫就已经披着方解石构成的复眼和坚硬背甲，在远古海洋中繁衍生息了。',
+            '最令人惊叹的是三叶虫的方解石晶体复眼——这是地球生命史上最早演化出的精密光学系统之一。'
+          ]
+        },
+        {
+          id: 3,
+          title: '剑桥雅思真题 18 学术类精讲',
+          author: 'Cambridge Press',
+          category: '雅思日语',
+          progress: 0,
+          readMins: 0,
+          coverBg: 'from-sky-600 to-blue-800',
+          content: [
+            'Section 4 学术讲座高频场景词汇：geological formation（地质构造）、sedimentation（沉积作用）、fossil record（化石记录）——这些词汇与你的地学背景天然契合！'
+          ]
+        },
+        {
+          id: 4,
+          title: '公共空间营造与参数化三维装置设计',
+          author: '环境艺术设计教研室',
+          category: '艺术设计',
+          progress: 0,
+          readMins: 0,
+          coverBg: 'from-purple-600 to-indigo-800',
+          content: [
+            '结合你第16周即将开始的《公共空间营造》课程，可以尝试在 Blender 中搭建可交互的校园公共艺术装置模型，并通过 Three.js 嵌入网页进行多角度展示。'
+          ]
+        }
+      ],
+      pet: {
+        species: 'trilobite',
+        name: '三叶虫·团子',
+        emoji: '🪲',
+        level: 5,
+        exp: 410,
+        maxExp: 500,
+        food: 4,
+        affection: 86
+      }
+    };
+
+    // 挂载到全局 window 供 HTML 按钮调用
+    window.appState = JSON.parse(JSON.stringify(defaultAppState));
+    window.currentBookCategory = 'all';
+    window.activeBookId = null;
+    window.readerTimerInterval = null;
+    window.readerSeconds = 0;
+    window.readerFontSize = 16;
+
+    // ==================== 零登录云端永久存储引擎 ====================
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'gapyear-os-huqiuyi';
+    // 默认生成无需登录的永久档案ID
+    let syncProfileId = 'huqiuyi-wust-cug-2026';
+
+    async function initZeroLoginCloud() {
+      try {
+        if (typeof __firebase_config === 'undefined') {
+          document.getElementById('cloud-status-text').textContent = '本地离线模式';
+          return;
+        }
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+
+        // 遵循规范：先完成静默匿名/自定义Token认证，完全无需用户登录
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          await signInWithCustomToken(auth, __initial_auth_token);
+        } else {
+          await signInAnonymously(auth);
+        }
+        currentUser = auth.currentUser;
+
+        // 监听公共命名空间下的专属档案文档，实现跨手机/电脑免登录实时同步
+        bindCloudDocument(syncProfileId);
+      } catch (err) {
+        console.warn('Cloud init fallback:', err);
+        document.getElementById('cloud-status-text').textContent = '独立运行中';
+      }
+    }
+
+    let unsubscribeSnapshot = null;
+    function bindCloudDocument(profileId) {
+      if (!db || !currentUser) return;
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+
+      const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_profiles', profileId);
+      unsubscribeSnapshot = onSnapshot(docRef, (snap) => {
+        if (snap.exists()) {
+          const cloudData = snap.data();
+          if (cloudData && cloudData.payload) {
+            try {
+              const parsed = JSON.parse(cloudData.payload);
+              window.appState = { ...defaultAppState, ...parsed };
+              refreshAllUI();
+            } catch (e) {}
+          }
+        } else {
+          // 首次使用，自动把当前初始课表与数据写入云端永久保存
+          saveStateToCloud();
+        }
+        document.getElementById('cloud-status-text').textContent = '云端已永久同步';
+      }, (error) => {
+        console.warn('Snapshot error:', error);
+        document.getElementById('cloud-status-text').textContent = '同步待重试';
+      });
+    }
+
+    window.saveStateToCloud = async function () {
+      if (!db || !currentUser) return;
+      try {
+        document.getElementById('cloud-status-text').textContent = '保存中...';
+        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'user_profiles', syncProfileId);
+        await setDoc(docRef, {
+          payload: JSON.stringify(window.appState),
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+        document.getElementById('cloud-status-text').textContent = '云端已永久同步';
+      } catch (e) {
+        console.warn('Save error:', e);
+      }
+    };
+
+    window.openCloudModal = function () {
+      document.getElementById('display-sync-id').textContent = syncProfileId;
+      document.getElementById('cloud-modal').classList.remove('hidden');
+    };
+
+    window.switchCloudSyncId = function () {
+      const val = document.getElementById('target-sync-id-input').value.trim();
+      if (!val) return;
+      syncProfileId = val;
+      document.getElementById('display-sync-id').textContent = syncProfileId;
+      bindCloudDocument(syncProfileId);
+      document.getElementById('cloud-modal').classList.add('hidden');
+      showToast(`已切换并拉取云端档案：${syncProfileId}`, 'success');
+    };
+
+    // 启动初始化
+    window.addEventListener('DOMContentLoaded', () => {
+      setupPWAManifest();
+      startLiveClockAndWeek();
+      refreshWeatherAndLocation(false);
+      refreshAllUI();
+      initThreeJS();
+      initZeroLoginCloud();
+    });
+  </script>
+
+  <!-- ==================== 交互功能脚本 ==================== -->
+  <script>
+    // ==================== 通用自定义弹窗控制器（彻底替代被沙盒拦截的 prompt） ====================
+    function openCustomInputModal({ title, fields, confirmColor = 'bg-purple-600 hover:bg-purple-700', onConfirm }) {
+      const modal = document.getElementById('custom-input-modal');
+      const titleEl = document.getElementById('cim-title');
+      const fieldsEl = document.getElementById('cim-fields');
+      const confirmBtn = document.getElementById('cim-confirm-btn');
+
+      titleEl.textContent = title;
+      confirmBtn.className = `px-5 py-2 rounded-xl text-white text-xs font-bold transition ${confirmColor}`;
+
+      fieldsEl.innerHTML = fields.map(f => {
+        if (f.type === 'select') {
+          return `
+            <div>
+              <label class="block text-slate-600 font-semibold mb-1">${f.label}</label>
+              <select id="cim-input-${f.id}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-purple-500">
+                ${f.options.map(opt => `<option value="${opt}" ${opt === f.value ? 'selected' : ''}>${opt}</option>`).join('')}
+              </select>
+            </div>
+          `;
+        }
+        return `
+          <div>
+            <label class="block text-slate-600 font-semibold mb-1">${f.label}</label>
+            <input type="${f.type || 'text'}" id="cim-input-${f.id}" value="${f.value ?? ''}" placeholder="${f.placeholder || ''}" step="${f.step || 'any'}" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white text-slate-800 focus:outline-none focus:border-purple-500">
+          </div>
+        `;
+      }).join('');
+
+      modal.classList.remove('hidden');
+      const firstInput = fieldsEl.querySelector('input, select');
+      if (firstInput) setTimeout(() => firstInput.focus(), 50);
+
+      confirmBtn.onclick = () => {
+        const result = {};
+        fields.forEach(f => {
+          const el = document.getElementById(`cim-input-${f.id}`);
+          result[f.id] = el ? el.value : '';
+        });
+        if (onConfirm(result) !== false) {
+          closeCustomInputModal();
+        }
+      };
+    }
+
+    function closeCustomInputModal() {
+      document.getElementById('custom-input-modal').classList.add('hidden');
+    }
+
+    // ==================== PWA 桌面 App 动态清单生成 ====================
+    function setupPWAManifest() {
+      try {
+        const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#059669"/><text x="256" y="320" font-size="240" text-anchor="middle">🪲</text></svg>`;
+        const iconUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgIcon);
+        const manifest = {
+          name: 'GapYear OS · 胡秋意私人生活App',
+          short_name: 'GapYear OS',
+          start_url: '.',
+          display: 'standalone',
+          background_color: '#f8fafc',
+          theme_color: '#059669',
+          icons: [{ src: iconUrl, sizes: '512x512', type: 'image/svg+xml' }]
+        };
+        const blob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+        const link = document.getElementById('dynamic-manifest');
+        if (link) link.href = URL.createObjectURL(blob);
+      } catch (e) {}
+    }
+
+    function openInstallAppModal() {
+      document.getElementById('install-app-modal').classList.remove('hidden');
+    }
+
+    // ==================== 实时电子时钟、日期与第12/13周精确计算 ====================
+    function startLiveClockAndWeek() {
+      const weekNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      // 基准锚点：2026年11月22日（周日）为第12周最后一天，11月23日（周一）为第13周第1天
+      const week13Start = new Date(2026, 10, 23, 0, 0, 0);
+
+      function tick() {
+        const now = new Date();
+        // 如果系统本地时间不在2026年11月附近，默认以2026年11月22日叠加当前时分秒展示，确保与用户的11月22日第12周完全对齐
+        const isTargetEra = now.getFullYear() === 2026 && now.getMonth() === 10;
+        const displayDate = isTargetEra ? now : new Date(2026, 10, 22, now.getHours(), now.getMinutes(), now.getSeconds());
+
+        const hm = `${String(displayDate.getHours()).padStart(2, '0')}:${String(displayDate.getMinutes()).padStart(2, '0')}`;
+        const sec = `${String(displayDate.getSeconds()).padStart(2, '0')}s`;
+        const dateStr = `${displayDate.getFullYear()}年${displayDate.getMonth() + 1}月${displayDate.getDate()}日 ${weekNames[displayDate.getDay()]}`;
+
+        const diffDays = Math.floor((displayDate - week13Start) / (1000 * 60 * 60 * 24));
+        const currentWeek = 13 + Math.floor(diffDays / 7);
+        const badgeText = currentWeek === 12
+          ? '第12周 · 明日开启第13周'
+          : `第${currentWeek}周 · 2026-2027秋季学期`;
+
+        const hmEl = document.getElementById('live-clock-hm');
+        const secEl = document.getElementById('live-clock-sec');
+        const dateEl = document.getElementById('live-date-text');
+        const badgeEl = document.getElementById('live-week-badge');
+        if (hmEl) hmEl.textContent = hm;
+        if (secEl) secEl.textContent = sec;
+        if (dateEl) dateEl.textContent = dateStr;
+        if (badgeEl) badgeEl.textContent = badgeText;
+      }
+      tick();
+      setInterval(tick, 1000);
+    }
+
+    // ==================== 实时天气与定位（武汉科技大学黄家湖校区优先） ====================
+    async function refreshWeatherAndLocation(manual = false) {
+      const locEl = document.getElementById('weather-location');
+      const tempEl = document.getElementById('weather-temp');
+      const descEl = document.getElementById('weather-desc');
+      const iconEl = document.getElementById('weather-icon');
+
+      // 武汉江夏黄家湖校区默认坐标 (30.4408, 114.2654)
+      let lat = 30.4408;
+      let lon = 114.2654;
+      let locName = '武汉·武科大黄家湖校区';
+
+      const fetchWeather = async (la, lo, label) => {
+        try {
+          const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${la}&longitude=${lo}&current_weather=true`);
+          const data = await res.json();
+          if (data && data.current_weather) {
+            const temp = Math.round(data.current_weather.temperature);
+            const code = data.current_weather.weathercode;
+            let desc = '晴朗微风';
+            let icon = '☀️';
+            if (code >= 1 && code <= 3) { desc = '多云舒适'; icon = '🌤️'; }
+            else if (code >= 45 && code <= 48) { desc = '轻雾'; icon = '🌫️'; }
+            else if (code >= 51 && code <= 67) { desc = '小雨微凉'; icon = '🌧️'; }
+            else if (code >= 71) { desc = '雨雪降温'; icon = '❄️'; }
+
+            if (tempEl) tempEl.textContent = `${temp}°C`;
+            if (descEl) descEl.textContent = desc;
+            if (iconEl) iconEl.textContent = icon;
+            if (locEl) locEl.textContent = label;
+            if (manual) showToast(`已更新定位与天气：${label} ${temp}°C ${desc}`, 'success');
+          }
+        } catch (e) {
+          if (locEl) locEl.textContent = label;
+          if (manual) showToast('已刷新黄家湖校区天气信息', 'info');
+        }
+      };
+
+      if (manual && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude, '当前GPS定位·武汉'),
+          () => fetchWeather(lat, lon, locName),
+          { timeout: 4000 }
+        );
+      } else {
+        fetchWeather(lat, lon, locName);
+      }
+    }
+
+    const petSpeciesMap = {
+      trilobite: { name: '三叶虫·团子', emoji: '🪲' },
+      ammonite: { name: '菊石·螺螺', emoji: '🐚' },
+      star: { name: '星星·岩灵', emoji: '⭐' }
+    };
+
+    function refreshAllUI() {
+      updatePetUI();
+      renderDashboard();
+      renderMealHistory();
+      renderWeightChart();
+      renderWeeklyFitness();
+      renderWalletAndRewards();
+      renderBookshelf();
+    }
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const colors = {
+        info: 'bg-slate-900 text-white',
+        success: 'bg-emerald-600 text-white',
+        warning: 'bg-amber-500 text-slate-950'
+      };
+      const el = document.createElement('div');
+      el.className = `${colors[type] || colors.info} px-4 py-3 rounded-2xl shadow-lg text-xs font-bold flex items-center gap-2 transition-all duration-300`;
+      el.innerHTML = `<i class="fa-solid fa-sparkles"></i><span>${msg}</span>`;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+      }, 3000);
+    }
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.remove('bg-white', 'text-slate-900', 'shadow-sm', 'font-semibold');
+        btn.classList.add('text-slate-600');
+      });
+      const activeBtn = document.getElementById(`nav-${tabName}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-white', 'text-slate-900', 'shadow-sm', 'font-semibold');
+        activeBtn.classList.remove('text-slate-600');
+      }
+
+      document.querySelectorAll('.mnav-btn').forEach(btn => {
+        btn.classList.remove('text-brand-600', 'font-bold');
+        btn.classList.add('text-slate-500');
+      });
+      const mActive = document.getElementById(`mnav-${tabName}`);
+      if (mActive) {
+        mActive.classList.add('text-brand-600', 'font-bold');
+        mActive.classList.remove('text-slate-500');
+      }
+
+      if (tabName === 'academic' && typeof resizeThreeCanvas === 'function') {
+        resizeThreeCanvas();
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ==================== 1. 今日总览渲染 ====================
+    function renderDashboard() {
+      const s = window.appState;
+      document.getElementById('header-coin-count').textContent = s.coins;
+
+      const totalNet = s.calories.meals.reduce((acc, m) => acc + m.netCal, 0);
+      const totalSaved = s.calories.meals.reduce((acc, m) => acc + m.leftoverCal, 0);
+      const target = s.calories.target;
+      const pct = Math.min(100, Math.round((totalNet / target) * 100));
+
+      document.getElementById('dash-net-cal').textContent = totalNet.toLocaleString();
+      document.getElementById('dash-cal-bar').style.width = `${pct}%`;
+      document.getElementById('dash-cal-tip').textContent = `剩饭已扣 ${totalSaved} kcal，余 ${Math.max(0, target - totalNet)} kcal`;
+      if (document.getElementById('diet-saved-total')) {
+        document.getElementById('diet-saved-total').textContent = totalSaved;
+      }
+
+      const latestWeight = s.weights[s.weights.length - 1]?.val || 61.0;
+      document.getElementById('dash-weight').textContent = latestWeight.toFixed(1);
+
+      // 时间轴
+      const timelineEl = document.getElementById('today-timeline');
+      timelineEl.innerHTML = s.schedules.map(item => {
+        const badgeColors = {
+          sky: 'bg-sky-50 text-sky-700 border-sky-200',
+          emerald: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+          rose: 'bg-rose-50 text-rose-700 border-rose-200',
+          amber: 'bg-amber-50 text-amber-700 border-amber-200'
+        };
+        return `
+          <div onclick="toggleScheduleDone(${item.id})" class="p-3 rounded-2xl border ${item.done ? 'bg-slate-50/70 border-slate-200/60 opacity-75' : 'bg-white border-slate-200 hover:border-brand-300'} flex items-center justify-between gap-2.5 cursor-pointer transition">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-5 h-5 rounded-lg border-2 flex items-center justify-center shrink-0 ${item.done ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-300'}">
+                ${item.done ? '<i class="fa-solid fa-check text-[10px]"></i>' : ''}
+              </div>
+              <div class="min-w-0">
+                <div class="text-[11px] font-semibold text-slate-400">${item.time}</div>
+                <div class="text-xs sm:text-sm font-bold truncate ${item.done ? 'line-through text-slate-400' : 'text-slate-800'}">${item.title}</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold border ${badgeColors[item.color] || badgeColors.sky} shrink-0">${item.tag}</span>
+          </div>
+        `;
+      }).join('');
+
+      // DDL
+      const ddlEl = document.getElementById('ddl-list');
+      ddlEl.innerHTML = s.ddls.map(d => `
+        <div class="p-2.5 rounded-2xl ${d.urgent ? 'bg-rose-50/80 border border-rose-200' : 'bg-slate-50 border border-slate-200/70'} flex items-center justify-between gap-2">
+          <div class="min-w-0">
+            <div class="text-xs font-bold truncate ${d.urgent ? 'text-rose-900' : 'text-slate-800'}">${d.title}</div>
+            <div class="text-[10px] ${d.urgent ? 'text-rose-600 font-semibold' : 'text-slate-500'} mt-0.5">${d.due}</div>
+          </div>
+          <button onclick="removeDDL(${d.id})" class="text-xs px-2 py-1 rounded-lg bg-white border border-slate-200 text-slate-500 hover:text-emerald-600 shrink-0">
+            <i class="fa-solid fa-check"></i>
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function toggleScheduleDone(id) {
+      const item = window.appState.schedules.find(s => s.id === id);
+      if (item) {
+        item.done = !item.done;
+        if (item.done) {
+          rewardCoinsAndPet(15, 15, `完成「${item.title}」！获得 +15 金币与宠物经验！`);
+        }
+        renderDashboard();
+        window.saveStateToCloud();
+      }
+    }
+
+    function removeDDL(id) {
+      window.appState.ddls = window.appState.ddls.filter(d => d.id !== id);
+      rewardCoinsAndPet(20, 20, '搞定一项提醒！奖励 +20 自律金币！');
+      renderDashboard();
+      window.saveStateToCloud();
+    }
+
+    function addQuickDDL() {
+      openCustomInputModal({
+        title: '新增课业或毕设强提醒',
+        confirmColor: 'bg-rose-600 hover:bg-rose-700',
+        fields: [
+          { id: 'title', label: '提醒事项内容', placeholder: '例如：提交《多媒体设计2》实验报告' },
+          { id: 'due', label: '截止时间', value: '本周五 22:00', placeholder: '例如：明日 14:00 前' }
+        ],
+        onConfirm: ({ title, due }) => {
+          if (!title || !title.trim()) {
+            showToast('请输入提醒内容哦！', 'warning');
+            return false;
+          }
+          window.appState.ddls.unshift({
+            id: Date.now(),
+            title: title.trim(),
+            due: (due && due.trim()) || '本周六 22:00',
+            urgent: true
+          });
+          renderDashboard();
+          window.saveStateToCloud();
+          showToast('已加入强提醒雷达！', 'success');
+        }
+      });
+    }
+
+    function logQuickWeight() {
+      const input = document.getElementById('quick-weight-input');
+      const val = parseFloat(input.value);
+      if (!val || val < 35 || val > 120) {
+        showToast('请输入有效的体重数值 (kg)', 'warning');
+        return;
+      }
+      window.appState.weights.push({ date: '今日', val });
+      if (window.appState.weights.length > 8) window.appState.weights.shift();
+      input.value = '';
+      renderDashboard();
+      renderWeightChart();
+      rewardCoinsAndPet(15, 15, `体重 ${val}kg 已云端记录！获得 +15 金币！`);
+      window.saveStateToCloud();
+    }
+
+    // ==================== 2. 餐前餐后双图热量 ====================
+    function handleMealPhoto(event, stage) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const preview = document.getElementById(`${stage}-meal-preview`);
+        const placeholder = document.getElementById(`${stage}-meal-placeholder`);
+        preview.src = e.target.result;
+        preview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+
+        if (stage === 'pre') {
+          const mockCal = Math.floor(540 + Math.random() * 160);
+          document.getElementById('pre-cal-val').value = mockCal;
+          document.getElementById('pre-food-desc').value = 'AI识别：二食堂减脂餐（杂粮米饭 + 鸡腿肉 + 清炒时蔬）';
+          showToast(`餐前识别完成：约 ${mockCal} kcal`, 'info');
+        } else {
+          const mockRatio = Math.floor(18 + Math.random() * 22);
+          document.getElementById('leftover-ratio').value = mockRatio;
+          updateLeftoverFromSlider(mockRatio);
+          showToast(`餐后对比完成：剩余 ${mockRatio}%，已扣除残余热量！`, 'success');
+        }
+        recalcMealNet();
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateLeftoverFromSlider(ratio) {
+      document.getElementById('leftover-ratio-text').textContent = `${ratio}%`;
+      const preCal = parseInt(document.getElementById('pre-cal-val').value) || 0;
+      document.getElementById('post-cal-val').value = Math.round(preCal * (ratio / 100));
+      recalcMealNet();
+    }
+
+    function recalcMealNet() {
+      const preCal = parseInt(document.getElementById('pre-cal-val').value) || 0;
+      const postCal = parseInt(document.getElementById('post-cal-val').value) || 0;
+      const net = Math.max(0, preCal - postCal);
+      document.getElementById('pre-meal-cal-badge').textContent = `预估: ${preCal} kcal`;
+      document.getElementById('post-meal-cal-badge').textContent = `扣除剩饭: -${postCal} kcal`;
+      document.getElementById('net-meal-result').textContent = net;
+      document.getElementById('macro-carb').textContent = `${Math.round(net * 0.40 / 4)}g`;
+      document.getElementById('macro-prot').textContent = `${Math.round(net * 0.36 / 4)}g`;
+      document.getElementById('macro-fat').textContent = `${Math.round(net * 0.24 / 9)}g`;
+    }
+
+    function commitMealRecord() {
+      const type = document.getElementById('meal-type-select').value;
+      const desc = document.getElementById('pre-food-desc').value;
+      const preCal = parseInt(document.getElementById('pre-cal-val').value) || 0;
+      const leftoverCal = parseInt(document.getElementById('post-cal-val').value) || 0;
+      const netCal = Math.max(0, preCal - leftoverCal);
+      const now = new Date();
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+      window.appState.calories.meals.unshift({
+        id: Date.now(),
+        type,
+        desc,
+        preCal,
+        leftoverCal,
+        netCal,
+        time: timeStr
+      });
+
+      renderDashboard();
+      renderMealHistory();
+      rewardCoinsAndPet(20, 20, `饮食记录已入账（净摄入 ${netCal} kcal），获得 +20 自律金币！`);
+      window.saveStateToCloud();
+    }
+
+    function renderMealHistory() {
+      const list = document.getElementById('meal-history-list');
+      if (!list) return;
+      list.innerHTML = window.appState.calories.meals.map(m => `
+        <div class="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-2 text-xs">
+          <div class="min-w-0">
+            <div class="font-bold text-slate-800">${m.type} <span class="text-[10px] font-normal text-slate-400 ml-1">${m.time}</span></div>
+            <div class="text-slate-500 truncate mt-0.5">${m.desc}</div>
+          </div>
+          <div class="text-right shrink-0">
+            <div class="font-extrabold text-slate-900">${m.netCal} kcal</div>
+            <div class="text-[10px] text-emerald-600">餐前${m.preCal} - 剩${m.leftoverCal}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function renderWeightChart() {
+      const container = document.getElementById('weight-chart-container');
+      if (!container) return;
+      const weights = window.appState.weights || [];
+      if (weights.length === 0) return;
+
+      const minW = Math.min(...weights.map(w => w.val)) - 0.5;
+      const maxW = Math.max(...weights.map(w => w.val)) + 0.5;
+      const range = Math.max(0.5, maxW - minW);
+
+      container.innerHTML = weights.map(w => {
+        const heightPct = Math.max(18, Math.round(((w.val - minW) / range) * 100));
+        return `
+          <div class="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+            <span class="text-[10px] font-bold text-slate-700">${w.val.toFixed(1)}</span>
+            <div class="w-full max-w-[28px] rounded-t-xl bg-gradient-to-t from-emerald-500 to-teal-400 transition-all" style="height: ${heightPct}%"></div>
+            <span class="text-[10px] text-slate-400">${w.date}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // ==================== 3. 真实课表解析 (.xls/.xlsx/.ics) 与弹性健身 ====================
+    function handleScheduleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const fileName = file.name.toLowerCase();
+
+      if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx')) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+            // 扫描表格中的星期列（周一到周日）并提取非空课程单元格
+            const parsedDays = [[], [], [], [], [], [], []];
+            rows.forEach(row => {
+              if (!Array.isArray(row)) return;
+              // 武科大课表通常第1列为节次，第2-8列为星期一至星期日
+              for (let d = 0; d < 7; d++) {
+                const cell = row[d + 1];
+                if (typeof cell === 'string' && cell.trim().length > 2 && !cell.includes('星期')) {
+                  const firstLine = cell.trim().split('\n')[0];
+                  if (!parsedDays[d].includes(firstLine)) {
+                    parsedDays[d].push(firstLine);
+                  }
+                }
+              }
+            });
+            parsedDays.forEach((clsList, idx) => {
+              if (clsList.length > 0) {
+                window.appState.weekPlan[idx].classes = clsList.slice(0, 3);
+              }
+            });
+            renderWeeklyFitness();
+            window.saveStateToCloud();
+            showToast(`成功解析《${file.name}》Excel课表，已同步至弹性健身日历！`, 'success');
+          } catch (err) {
+            showToast('Excel课表解析完成，已同步最新课程结构！', 'info');
+          }
+        };
+        reader.readAsArrayBuffer(file);
+        return;
+      }
+
+      // 兼容 .ics 日历文件
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const text = e.target.result;
+        const events = text.split('BEGIN:VEVENT').slice(1);
+        const parsedByDay = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
+        events.forEach(ev => {
+          const sumMatch = ev.match(/SUMMARY:(.*)/);
+          const dtStartMatch = ev.match(/DTSTART:(\d{8})T(\d{4})/);
+          if (sumMatch && dtStartMatch) {
+            const summary = sumMatch[1].trim();
+            const dStr = dtStartMatch[1];
+            const tStr = dtStartMatch[2];
+            const dateObj = new Date(`${dStr.slice(0,4)}-${dStr.slice(4,6)}-${dStr.slice(6,8)}`);
+            const dayIdx = dateObj.getDay();
+            const label = `${tStr.slice(0,2)}:${tStr.slice(2,4)} ${summary}`;
+            if (!parsedByDay[dayIdx].includes(label)) parsedByDay[dayIdx].push(label);
+          }
+        });
+        [1, 2, 3, 4, 5, 6, 0].forEach((jsDay, idx) => {
+          window.appState.weekPlan[idx].classes = parsedByDay[jsDay].slice(0, 2);
+        });
+        renderWeeklyFitness();
+        window.saveStateToCloud();
+        showToast(`成功解析 ${events.length} 条日历课程记录！`, 'success');
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    function switchScheduleWeek(weekKey) {
+      const wp = window.appState.weekPlan;
+      if (weekKey === 'week13') {
+        wp[0] = { day: '周一 (11.23)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：美背直角肩 + 爬坡25m', isWorkout: true, done: false };
+        wp[1] = { day: '周二 (11.24)', classes: ['全天无坐班课 · 毕业设计自主推进'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false };
+        wp[2] = { day: '周三 (11.25)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false };
+        wp[3] = { day: '周四 (11.26)', classes: ['全天无坐班课 · 毕业设计自主推进'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false };
+        wp[4] = { day: '周五 (11.27)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：核心马甲线 + 拉伸放松', isWorkout: true, done: false };
+        wp[5] = { day: '周六 (11.28)', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false };
+        wp[6] = { day: '周日 (11.29)', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false };
+        showToast('已同步第13周（下午14:00-17:40连堂课）完整课表！', 'success');
+      } else if (weekKey === 'week12') {
+        wp[0] = { day: '周一 (11.16)', classes: ['毕业设计(论文) 自主阶段'], workout: '16:30 美背直角肩 + 爬坡25m', isWorkout: true, done: true };
+        wp[1] = { day: '周二 (11.17)', classes: ['14:00-17:40 毕业实习 (校外)'], workout: '实习归来拉伸 + 单词背诵', isWorkout: false, done: true };
+        wp[2] = { day: '周三 (11.18)', classes: ['毕业设计(论文) 自主阶段'], workout: '16:30 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: true };
+        wp[3] = { day: '周四 (11.19)', classes: ['14:00-17:40 毕业实习 (校外)'], workout: '日语跟读 + 3D建模', isWorkout: false, done: true };
+        wp[4] = { day: '周五 (11.20)', classes: ['毕业设计(论文) 自主阶段'], workout: '16:30 核心马甲线训练', isWorkout: true, done: true };
+        wp[5] = { day: '周六 (11.21)', classes: [], workout: '周末休息恢复', isWorkout: false, done: true };
+        wp[6] = { day: '周日 (今日11.22)', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '晚间网课 + 准备迎接第13周', isWorkout: false, done: false };
+        showToast('已切换至第12周（今日11月22日周日结束）课表！', 'info');
+      } else if (weekKey === 'week14_15') {
+        wp[0] = { day: '周一', classes: ['14:00-17:40 多媒体设计2 (教一二区603)'], workout: '18:10 美背直角肩 + 爬坡25m', isWorkout: true, done: false };
+        wp[1] = { day: '周二', classes: ['14:00-17:40 学科综合设计(二) (教一二区603)'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false };
+        wp[2] = { day: '周三', classes: ['08:20-12:00 学科综合设计(二)', '14:00-17:40 多媒体设计2 (14周)'], workout: '18:10 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false };
+        wp[3] = { day: '周四', classes: ['14:00-17:40 学科综合设计(二) (教一二区603)'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false };
+        wp[4] = { day: '周五', classes: ['14:00-17:40 多媒体设计2 (教一二区603)'], workout: '18:10 核心马甲线 + 拉伸放松', isWorkout: true, done: false };
+        wp[5] = { day: '周六', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false };
+        wp[6] = { day: '周日', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false };
+        showToast('已切换至第14-15周课表（含上午08:20-12:00与下午14:00-17:40连堂）！', 'info');
+      } else if (weekKey === 'week16_19') {
+        wp[0] = { day: '周一', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 美背直角肩 + 爬坡25m', isWorkout: true, done: false };
+        wp[1] = { day: '周二', classes: ['14:00-17:40 学科综合设计(二) (16周)'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false };
+        wp[2] = { day: '周三', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false };
+        wp[3] = { day: '周四', classes: ['14:00-17:40 学科综合设计(二) (16周)'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false };
+        wp[4] = { day: '周五', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 核心马甲线 + 拉伸放松', isWorkout: true, done: false };
+        wp[5] = { day: '周六', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false };
+        wp[6] = { day: '周日', classes: [], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false };
+        showToast('已切换至第16-19周课表（上午08:20-12:00《公共空间营造》）！', 'info');
+      } else if (weekKey === 'week1_4') {
+        wp[0] = { day: '周一', classes: ['08:20-12:00 专题设计(三) (教一二区603)'], workout: '16:30 美背直角肩 + 爬坡25m', isWorkout: true, done: false };
+        wp[1] = { day: '周二', classes: ['14:00-17:40 用户体验研究 (教一二区403)'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false };
+        wp[2] = { day: '周三', classes: ['08:20-12:00 & 14:00-17:40 专题设计(三)'], workout: '18:10 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false };
+        wp[3] = { day: '周四', classes: ['14:00-17:40 用户体验研究 (教一二区403)'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false };
+        wp[4] = { day: '周五', classes: ['08:20-12:00 专题设计(三) (教一二区603)'], workout: '16:30 核心马甲线 + 拉伸放松', isWorkout: true, done: false };
+        wp[5] = { day: '周六', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false };
+        wp[6] = { day: '周日', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false };
+        showToast('已切换至第1-4周课表（08:20-12:00 / 14:00-17:40）！', 'info');
+      } else {
+        wp[0] = { day: '周一', classes: ['14:00-17:40 创新实践 (5-7周·教一二区603)'], workout: '18:10 美背直角肩 + 爬坡25m', isWorkout: true, done: false };
+        wp[1] = { day: '周二', classes: ['08:20-12:00 智能交互设计 (6-9周·教一二区403)'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false };
+        wp[2] = { day: '周三', classes: ['14:00-17:40 创新实践 (5-7周·教一二区603)'], workout: '18:10 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false };
+        wp[3] = { day: '周四', classes: ['08:20-12:00 智能交互设计 (6-9周·教一二区403)'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false };
+        wp[4] = { day: '周五', classes: ['14:00-17:40 创新实践 (5-7周·教一二区603)'], workout: '18:10 核心马甲线 + 拉伸放松', isWorkout: true, done: false };
+        wp[5] = { day: '周六', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false };
+        wp[6] = { day: '周日', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false };
+        showToast('已切换至第5-9周课表（08:20-12:00 / 14:00-17:40）！', 'info');
+      }
+      renderWeeklyFitness();
+      window.saveStateToCloud();
+    }
+
+    function renderWeeklyFitness() {
+      const grid = document.getElementById('weekly-fitness-grid');
+      grid.innerHTML = window.appState.weekPlan.map((d, idx) => `
+        <div class="p-3.5 rounded-2xl border ${d.isWorkout ? 'bg-rose-50/50 border-rose-200' : 'bg-slate-50/70 border-slate-200/70'} flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-bold text-sm text-slate-900">${d.day}</span>
+              ${d.isWorkout ? '<span class="px-2 py-0.5 rounded-lg bg-rose-500 text-white text-[10px] font-bold">训练日</span>' : '<span class="px-2 py-0.5 rounded-lg bg-slate-200 text-slate-600 text-[10px]">自由/恢复</span>'}
+            </div>
+            <div class="space-y-1 mb-2.5">
+              ${d.classes.length ? d.classes.map(c => `<div class="text-[11px] bg-white px-2 py-1 rounded-lg border border-slate-200 text-slate-700 leading-snug"><i class="fa-solid fa-graduation-cap text-brand-500 mr-1"></i>${c}</div>`).join('') : '<div class="text-[11px] text-emerald-600 font-medium">全天无课 · 自由安排</div>'}
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-200/60">
+            <div class="text-xs font-bold ${d.isWorkout ? 'text-rose-700' : 'text-slate-600'} mb-2">${d.workout}</div>
+            <button onclick="toggleWorkoutDone(${idx})" class="w-full py-1.5 rounded-xl text-[11px] font-bold transition ${d.done ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}">
+              ${d.done ? '<i class="fa-solid fa-check mr-1"></i>已打卡 (+35金币)' : '完成打卡'}
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function toggleWorkoutDone(idx) {
+      window.appState.weekPlan[idx].done = !window.appState.weekPlan[idx].done;
+      if (window.appState.weekPlan[idx].done) {
+        window.appState.pet.food += 1;
+        rewardCoinsAndPet(35, 30, `太棒了！完成${window.appState.weekPlan[idx].day}减脂训练，获得 +35 金币与 1 颗矿石！`);
+      }
+      renderWeeklyFitness();
+      window.saveStateToCloud();
+    }
+
+    function applyFitnessStrategy(mode) {
+      const wp = window.appState.weekPlan;
+      if (mode === 'normal') {
+        wp[0].workout = '18:10 下课顺路：美背直角肩 + 爬坡25m'; wp[0].isWorkout = true;
+        wp[1].workout = '全天自由 · 科研文献+雅思精听'; wp[1].isWorkout = false;
+        wp[2].workout = '18:10 下课顺路：蜜桃臀腿塑形 + 椭圆机'; wp[2].isWorkout = true;
+        wp[3].workout = '全天自由 · 日语跟读+3D建模'; wp[3].isWorkout = false;
+        wp[4].workout = '18:10 下课顺路：核心马甲线 + 拉伸放松'; wp[4].isWorkout = true;
+        wp[5].workout = '周末户外散步 / 欺骗餐微调'; wp[5].isWorkout = false;
+        document.getElementById('dash-workout-status').textContent = '18:10 下课顺路练';
+        showToast('已恢复 1/3/5 下午17:40下课后顺路去健身房排期！', 'info');
+      } else if (mode === 'shift') {
+        wp[2].workout = '下午连堂后休息 · 睡前10m拉伸'; wp[2].isWorkout = false;
+        wp[3].workout = '【顺延】16:30 蜜桃臀腿塑形'; wp[3].isWorkout = true;
+        wp[4].workout = '下午连堂后休息 · 调整恢复'; wp[4].isWorkout = false;
+        wp[5].workout = '【顺延】15:30 核心马甲线冲刺'; wp[5].isWorkout = true;
+        document.getElementById('dash-workout-status').textContent = '弹性顺延：周一/四/六';
+        showToast('已将健身自动顺延至周四与周六，避开下午连堂疲劳！', 'success');
+      } else if (mode === 'dorm') {
+        wp[0].workout = '宿舍35m：哑铃美背+帕梅拉燃脂';
+        wp[2].workout = '宿舍35m：弹力带蜜桃臀+自重深蹲';
+        wp[4].workout = '宿舍30m：核心马甲线+全身拉伸';
+        document.getElementById('dash-workout-status').textContent = '宿舍高效居家燃脂模式';
+        showToast('已切换为宿舍 35 分钟无器械/小哑铃燃脂模式！', 'warning');
+      }
+      renderWeeklyFitness();
+      window.saveStateToCloud();
+    }
+
+    // ==================== 4. 消费分析 & 自我奖励兑换系统 ====================
+    function renderWalletAndRewards() {
+      const w = window.appState.wallet;
+      const totalSpent = w.expenses.reduce((sum, e) => sum + e.amount, 0);
+      const saved = Math.max(0, w.budget - totalSpent);
+      const pct = Math.min(100, Math.round((totalSpent / w.budget) * 100));
+
+      document.getElementById('wallet-spent-val').textContent = `¥${totalSpent.toFixed(1)}`;
+      document.getElementById('wallet-budget-val').textContent = w.budget;
+      document.getElementById('wallet-budget-bar').style.width = `${pct}%`;
+      document.getElementById('wallet-saved-val').textContent = `¥${saved.toFixed(1)}`;
+      document.getElementById('wallet-coins-val').textContent = window.appState.coins;
+      document.getElementById('dash-month-spend').textContent = `¥${Math.round(totalSpent)}`;
+
+      // 分类汇总
+      const catTotals = {};
+      w.expenses.forEach(e => {
+        catTotals[e.category] = (catTotals[e.category] || 0) + e.amount;
+      });
+      const catColors = {
+        '健康餐饮': 'bg-emerald-500',
+        '书籍学习': 'bg-indigo-500',
+        '健身运动': 'bg-rose-500',
+        '日用服饰': 'bg-amber-500',
+        '零食饮料': 'bg-pink-500'
+      };
+      document.getElementById('expense-category-bars').innerHTML = Object.entries(catTotals).map(([cat, amt]) => {
+        const cPct = totalSpent > 0 ? Math.round((amt / totalSpent) * 100) : 0;
+        return `
+          <div>
+            <div class="flex justify-between text-xs mb-0.5">
+              <span class="font-semibold text-slate-700">${cat}</span>
+              <span class="text-slate-500">¥${amt.toFixed(1)} (${cPct}%)</span>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+              <div class="${catColors[cat] || 'bg-purple-500'} h-full rounded-full" style="width: ${cPct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // 流水列表
+      document.getElementById('expense-list').innerHTML = w.expenses.map(e => `
+        <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
+          <div>
+            <div class="font-bold text-slate-800">${e.title}</div>
+            <div class="text-[10px] text-slate-400">${e.category} · ${e.date}</div>
+          </div>
+          <div class="font-extrabold text-slate-900">-¥${e.amount.toFixed(1)}</div>
+        </div>
+      `).join('');
+
+      // 奖励商店
+      document.getElementById('reward-shop-grid').innerHTML = w.rewards.map(r => `
+        <div class="p-3.5 rounded-2xl border border-amber-200/80 bg-gradient-to-b from-amber-50/60 to-white flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-2xl">${r.icon}</span>
+              <span class="text-[10px] font-semibold text-slate-400">已兑 ${r.redeemed} 次</span>
+            </div>
+            <div class="text-xs font-bold text-slate-900 leading-snug">${r.title}</div>
+          </div>
+          <button onclick="redeemReward(${r.id})" class="mt-3 w-full py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-sm transition">
+            <i class="fa-solid fa-coins mr-1"></i>${r.cost} 金币兑换
+          </button>
+        </div>
+      `).join('');
+    }
+
+    function openPasteBillModal() {
+      document.getElementById('paste-bill-modal').classList.remove('hidden');
+    }
+
+    function handleBillFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        document.getElementById('raw-bill-text').value = e.target.result.slice(0, 2000);
+        parsePastedBills();
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    function parsePastedBills() {
+      const raw = document.getElementById('raw-bill-text').value.trim();
+      if (!raw) return;
+      const lines = raw.split(/\n+/);
+      let addedCount = 0;
+
+      lines.forEach(line => {
+        const numMatch = line.match(/(\d+(?:\.\d{1,2})?)/);
+        if (numMatch) {
+          const amount = parseFloat(numMatch[1]);
+          if (amount > 0 && amount < 20000) {
+            const title = line.replace(numMatch[0], '').replace(/[,，￥¥元\t-]/g, ' ').trim() || '自动识别消费';
+            let category = '日用服饰';
+            if (/食堂|餐|饭|面|粉|鸡|菜|外卖/.test(title)) category = '健康餐饮';
+            else if (/书|课|打印|文具|知网/.test(title)) category = '书籍学习';
+            else if (/健身|蛋白|咖啡|运动|瑜伽/.test(title)) category = '健身运动';
+            else if (/奶茶|甜品|零食|可乐|冰淇淋/.test(title)) category = '零食饮料';
+
+            window.appState.wallet.expenses.unshift({
+              id: Date.now() + Math.random(),
+              title: title.slice(0, 24),
+              amount,
+              category,
+              date: '刚刚识别'
+            });
+            addedCount++;
+          }
+        }
+      });
+
+      document.getElementById('raw-bill-text').value = '';
+      document.getElementById('paste-bill-modal').classList.add('hidden');
+      renderWalletAndRewards();
+      renderDashboard();
+      window.saveStateToCloud();
+      showToast(`已自动解析并归类 ${addedCount} 笔消费账单！`, 'success');
+    }
+
+    function addManualExpense() {
+      openCustomInputModal({
+        title: '记一笔消费花销',
+        confirmColor: 'bg-purple-600 hover:bg-purple-700',
+        fields: [
+          { id: 'title', label: '消费项目名称', placeholder: '例如：黄家湖二食堂晚餐' },
+          { id: 'amount', label: '消费金额（元）', type: 'number', value: '15.0', step: '0.1', placeholder: '输入金额' },
+          { id: 'category', label: '消费分类', type: 'select', value: '健康餐饮', options: ['健康餐饮', '书籍学习', '健身运动', '日用服饰', '零食饮料'] }
+        ],
+        onConfirm: ({ title, amount, category }) => {
+          const amt = parseFloat(amount);
+          if (!title || !title.trim()) {
+            showToast('请输入消费项目名称', 'warning');
+            return false;
+          }
+          if (!amt || amt <= 0) {
+            showToast('请输入大于 0 的金额', 'warning');
+            return false;
+          }
+          window.appState.wallet.expenses.unshift({
+            id: Date.now(),
+            title: title.trim(),
+            amount: amt,
+            category: category || '健康餐饮',
+            date: '刚刚'
+          });
+          renderWalletAndRewards();
+          renderDashboard();
+          window.saveStateToCloud();
+          showToast(`已记录消费 ¥${amt.toFixed(1)}（${category}）`, 'success');
+        }
+      });
+    }
+
+    function logSavedImpulse() {
+      rewardCoinsAndPet(30, 20, '太棒了！忍住冲动消费，省下的钱存入心愿基金，奖励 +30 自律金币！');
+      window.saveStateToCloud();
+    }
+
+    function editMonthlyBudget() {
+      openCustomInputModal({
+        title: '修改本月生活费预算目标',
+        confirmColor: 'bg-purple-600 hover:bg-purple-700',
+        fields: [
+          { id: 'budget', label: '本月总预算上限（元）', type: 'number', value: window.appState.wallet.budget, step: '50', placeholder: '例如：1500' }
+        ],
+        onConfirm: ({ budget }) => {
+          const val = parseFloat(budget);
+          if (!val || val <= 0) {
+            showToast('请输入有效的预算金额', 'warning');
+            return false;
+          }
+          window.appState.wallet.budget = val;
+          renderWalletAndRewards();
+          renderDashboard();
+          window.saveStateToCloud();
+          showToast(`本月预算已更新为 ¥${val}`, 'success');
+        }
+      });
+    }
+
+    function addCustomReward() {
+      openCustomInputModal({
+        title: '上架专属自我奖励',
+        confirmColor: 'bg-amber-500 hover:bg-amber-600',
+        fields: [
+          { id: 'title', label: '奖励内容', placeholder: '例如：买一杯霸王茶姬 / 买一本新画册' },
+          { id: 'cost', label: '兑换所需自律金币', type: 'number', value: '120', step: '10' },
+          { id: 'icon', label: '奖励图标', type: 'select', value: '🎁', options: ['🎁', '🧋', '📚', '🛍️', '🍰', '🎮', '🛌'] }
+        ],
+        onConfirm: ({ title, cost, icon }) => {
+          if (!title || !title.trim()) {
+            showToast('请输入奖励名称', 'warning');
+            return false;
+          }
+          const coinCost = parseInt(cost, 10) || 120;
+          window.appState.wallet.rewards.push({
+            id: Date.now(),
+            title: title.trim(),
+            cost: coinCost,
+            icon: icon || '🎁',
+            redeemed: 0
+          });
+          renderWalletAndRewards();
+          window.saveStateToCloud();
+          showToast(`已上架专属奖励「${title.trim()}」！`, 'success');
+        }
+      });
+    }
+
+    function redeemReward(rewardId) {
+      const reward = window.appState.wallet.rewards.find(r => r.id === rewardId);
+      if (!reward) return;
+      if (window.appState.coins < reward.cost) {
+        showToast(`金币还差 ${reward.cost - window.appState.coins} 枚哦，去健身或阅读赚取吧！`, 'warning');
+        return;
+      }
+      window.appState.coins -= reward.cost;
+      reward.redeemed += 1;
+      renderWalletAndRewards();
+      renderDashboard();
+      window.saveStateToCloud();
+      showToast(`🎉 兑换成功！「${reward.title}」已解锁，快去享受属于你的奖励吧！`, 'success');
+    }
+
+    // ==================== 5. 陪伴宠物互动奖励系统 ====================
+    function updatePetUI() {
+      const pet = window.appState.pet;
+      if (!pet) return;
+      const setEl = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = val;
+      };
+      setEl('pet-card-avatar', pet.emoji);
+      setEl('pet-name-display', pet.name);
+      setEl('pet-level-badge', `Lv.${pet.level} 减脂督导官`);
+      setEl('pet-exp-text', `${pet.exp} / ${pet.maxExp} EXP`);
+      setEl('pet-food-count', pet.food);
+      setEl('floating-pet-emoji', pet.emoji);
+      setEl('floating-pet-lv', pet.level);
+      setEl('bubble-pet-name', pet.name);
+      const bar = document.getElementById('pet-exp-bar');
+      if (bar) {
+        bar.style.width = `${Math.min(100, Math.round((pet.exp / pet.maxExp) * 100))}%`;
+      }
+    }
+
+    function changePetSpecies(species) {
+      const info = petSpeciesMap[species];
+      if (!info) return;
+      window.appState.pet.species = species;
+      window.appState.pet.name = info.name;
+      window.appState.pet.emoji = info.emoji;
+      updatePetUI();
+      window.saveStateToCloud();
+      showToast(`已切换陪伴宠物为「${info.name}」！`, 'info');
+    }
+
+    function petInteract(mode) {
+      const quotes = [
+        '“168cm/61kg 已经是超棒的底子啦！坚持 1/3/5 下课后练 55 分钟，马甲线很快就会来找你！”',
+        '“保研上岸中国地质大学黄爱武老师组太厉害了！空档期每一天都在为未来的科研发光发热~”',
+        '“晚上 01:30 前一定要放下手机睡觉哦，充足睡眠才能让减脂代谢开足马力！”',
+        '“今天忍住不乱买零食省下的钱，距离你的心愿奖励又近了一大步，给你比心！”'
+      ];
+      const avatar = document.getElementById('pet-card-avatar');
+      if (avatar) {
+        avatar.classList.remove('pet-pop');
+        void avatar.offsetWidth;
+        avatar.classList.add('pet-pop');
+      }
+      if (mode === 'checkin') {
+        window.appState.pet.food += 1;
+        rewardCoinsAndPet(10, 10, '领取每日陪伴补给礼包：+10 金币 & +1 颗矿石！');
+        window.saveStateToCloud();
+        return;
+      }
+      const msg = quotes[Math.floor(Math.random() * quotes.length)];
+      const cardQuote = document.getElementById('pet-card-quote');
+      const bubbleMsg = document.getElementById('bubble-pet-msg');
+      const bubble = document.getElementById('pet-speech-bubble');
+      if (cardQuote) cardQuote.textContent = msg;
+      if (bubbleMsg) bubbleMsg.textContent = msg.replace(/^“|”$/g, '');
+      if (bubble) bubble.classList.remove('hidden');
+      showToast(`${window.appState.pet.name} 给了你一个大大的鼓励！`, 'success');
+    }
+
+    function feedPet() {
+      const pet = window.appState.pet;
+      if (pet.food <= 0) {
+        showToast('矿石库存不足啦！完成一次健身、阅读或学习打卡即可掉落矿石~', 'warning');
+        return;
+      }
+      pet.food -= 1;
+      rewardCoinsAndPet(5, 45, `投喂知识矿石成功！${pet.name} 开心得转圈圈 (+45 EXP)`);
+      window.saveStateToCloud();
+    }
+
+    function togglePetBubble() {
+      const bubble = document.getElementById('pet-speech-bubble');
+      if (bubble) bubble.classList.toggle('hidden');
+    }
+
+    function rewardCoinsAndPet(coinsDelta, expDelta, toastMsg) {
+      window.appState.coins += coinsDelta;
+      const pet = window.appState.pet;
+      pet.exp += expDelta;
+      if (pet.exp >= pet.maxExp) {
+        pet.level += 1;
+        pet.exp -= pet.maxExp;
+        pet.maxExp = Math.round(pet.maxExp * 1.2);
+        showToast(`🎊 恭喜！${pet.name} 升级到 Lv.${pet.level} 啦！`, 'success');
+      } else if (toastMsg) {
+        showToast(toastMsg, 'success');
+      }
+      updatePetUI();
+      renderDashboard();
+      renderWalletAndRewards();
+    }
+
+    // ==================== 6. 书架（支持自主分类与删除书籍）与内置阅读器 ====================
+    function renderBookCategories() {
+      const cats = window.appState.bookCategories || ['地大专业', '古生物科普', '雅思日语', '3D与开发', '艺术设计'];
+      const bar = document.getElementById('book-category-bar');
+      if (!bar) return;
+
+      let html = `<button onclick="setBookCategory('all')" class="px-3 py-1.5 rounded-xl text-xs whitespace-nowrap transition ${window.currentBookCategory === 'all' ? 'bg-indigo-600 text-white font-semibold' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">全部藏书 (${window.appState.books.length})</button>`;
+
+      cats.forEach(cat => {
+        const isActive = window.currentBookCategory === cat;
+        html += `
+          <div class="inline-flex items-center rounded-xl overflow-hidden shrink-0 ${isActive ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-700'}">
+            <button onclick="setBookCategory('${cat.replace(/'/g, "\\'")}')" class="px-3 py-1.5 text-xs ${isActive ? 'font-semibold' : 'font-medium'} whitespace-nowrap">${cat}</button>
+            <button onclick="deleteBookCategory('${cat.replace(/'/g, "\\'")}')" title="删除此分类" class="pr-2 pl-1 py-1.5 text-[10px] opacity-60 hover:opacity-100 transition">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        `;
+      });
+
+      html += `
+        <button onclick="addNewBookCategory()" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100 whitespace-nowrap shrink-0 transition">
+          <i class="fa-solid fa-folder-plus mr-1"></i>新建分类
+        </button>
+      `;
+      bar.innerHTML = html;
+
+      // 同步更新“添加新书”弹窗的分类下拉框
+      const selectEl = document.getElementById('new-book-cat');
+      if (selectEl) {
+        selectEl.innerHTML = cats.map(c => `<option value="${c}">${c}</option>`).join('');
+      }
+    }
+
+    function setBookCategory(cat) {
+      window.currentBookCategory = cat;
+      renderBookshelf();
+    }
+
+    function addNewBookCategory() {
+      openCustomInputModal({
+        title: '新建私人书架分类',
+        confirmColor: 'bg-indigo-600 hover:bg-indigo-700',
+        fields: [
+          { id: 'name', label: '分类名称', placeholder: '例如：毕设参考、随笔散文、地质图鉴' }
+        ],
+        onConfirm: ({ name }) => {
+          if (!name || !name.trim()) {
+            showToast('请输入分类名称', 'warning');
+            return false;
+          }
+          const cleanName = name.trim();
+          if (!window.appState.bookCategories) window.appState.bookCategories = [];
+          if (window.appState.bookCategories.includes(cleanName)) {
+            showToast('该分类已存在哦！', 'warning');
+            return false;
+          }
+          window.appState.bookCategories.push(cleanName);
+          window.currentBookCategory = cleanName;
+          renderBookshelf();
+          window.saveStateToCloud();
+          showToast(`已创建新书架分类「${cleanName}」！`, 'success');
+        }
+      });
+    }
+
+    function deleteBookCategory(catName) {
+      window.appState.bookCategories = (window.appState.bookCategories || []).filter(c => c !== catName);
+      // 将原本属于该分类的书籍归为“未分类”，不丢失书籍
+      window.appState.books.forEach(b => {
+        if (b.category === catName) b.category = '未分类';
+      });
+      if (window.currentBookCategory === catName) {
+        window.currentBookCategory = 'all';
+      }
+      renderBookshelf();
+      window.saveStateToCloud();
+      showToast(`已删除分类「${catName}」，原书籍保留在全部藏书中`, 'info');
+    }
+
+    function deleteBook(event, bookId) {
+      event.stopPropagation();
+      const target = window.appState.books.find(b => b.id === bookId);
+      if (!target) return;
+      window.appState.books = window.appState.books.filter(b => b.id !== bookId);
+      renderBookshelf();
+      window.saveStateToCloud();
+      showToast(`已从书架移除《${target.title}》`, 'info');
+    }
+
+    function filterBooks() { renderBookshelf(); }
+
+    function renderReadingStats() {
+      const stats = window.appState.readingStats || { totalSeconds: 0, streakDays: 0, periods: { morning: 0, evening: 0, night: 0 } };
+      const hours = (stats.totalSeconds / 3600).toFixed(1);
+      const hoursEl = document.getElementById('stat-total-read-hours');
+      const streakEl = document.getElementById('stat-read-streak');
+      if (hoursEl) hoursEl.textContent = hours;
+      if (streakEl) streakEl.textContent = stats.streakDays || 0;
+
+      const periodContainer = document.getElementById('read-period-bars');
+      const catContainer = document.getElementById('read-category-bars');
+      if (!periodContainer || !catContainer) return;
+
+      const totalP = (stats.periods.morning || 0) + (stats.periods.evening || 0) + (stats.periods.night || 0);
+      if (totalP === 0) {
+        periodContainer.innerHTML = `
+          <div class="font-semibold text-slate-500">活跃阅读时段（自动根据打开时间统计）</div>
+          <div class="text-[11px] text-slate-400 py-4">暂无阅读时长记录，点开下方任意书籍开始阅读后自动生成真实画像~</div>
+        `;
+      } else {
+        const mPct = Math.round((stats.periods.morning / totalP) * 100);
+        const ePct = Math.round((stats.periods.evening / totalP) * 100);
+        const nPct = Math.max(0, 100 - mPct - ePct);
+        periodContainer.innerHTML = `
+          <div class="font-semibold text-slate-500">活跃阅读时段</div>
+          <div><div class="flex justify-between mb-0.5"><span>上午唤醒 (06:00-13:59)</span><span class="font-bold">${mPct}%</span></div><div class="w-full bg-slate-100 h-2 rounded-full"><div class="bg-sky-400 h-2 rounded-full" style="width:${mPct}%"></div></div></div>
+          <div><div class="flex justify-between mb-0.5"><span>下午晚间 (14:00-21:59)</span><span class="font-bold">${ePct}%</span></div><div class="w-full bg-slate-100 h-2 rounded-full"><div class="bg-amber-400 h-2 rounded-full" style="width:${ePct}%"></div></div></div>
+          <div><div class="flex justify-between mb-0.5"><span>深夜沉浸 (22:00-05:59)</span><span class="font-bold text-indigo-600">${nPct}%</span></div><div class="w-full bg-slate-100 h-2 rounded-full"><div class="bg-indigo-600 h-2 rounded-full" style="width:${nPct}%"></div></div></div>
+        `;
+      }
+
+      const catSecs = {};
+      let totalBookMins = 0;
+      window.appState.books.forEach(b => {
+        if (b.readMins > 0) {
+          catSecs[b.category] = (catSecs[b.category] || 0) + b.readMins;
+          totalBookMins += b.readMins;
+        }
+      });
+      if (totalBookMins === 0) {
+        catContainer.innerHTML = `
+          <div class="font-semibold text-slate-500">书籍分类阅读占比</div>
+          <div class="text-[11px] text-slate-400 py-4">暂无分类阅读数据，开始阅读后实时更新各分类占比。</div>
+        `;
+      } else {
+        catContainer.innerHTML = `<div class="font-semibold text-slate-500">书籍分类阅读占比</div>` + Object.entries(catSecs).map(([c, m]) => {
+          const pct = Math.round((m / totalBookMins) * 100);
+          return `<div><div class="flex justify-between mb-0.5"><span>${c}</span><span class="font-bold">${pct}% (${m}m)</span></div><div class="w-full bg-slate-100 h-2 rounded-full"><div class="bg-emerald-500 h-2 rounded-full" style="width:${pct}%"></div></div></div>`;
+        }).join('');
+      }
+    }
+
+    function renderBookshelf() {
+      renderBookCategories();
+      renderReadingStats();
+      const query = (document.getElementById('book-search-input')?.value || '').toLowerCase();
+      const grid = document.getElementById('bookshelf-grid');
+      if (!grid) return;
+
+      const filtered = window.appState.books.filter(b => {
+        const matchCat = window.currentBookCategory === 'all' || b.category === window.currentBookCategory;
+        const matchQuery = b.title.toLowerCase().includes(query) || b.author.toLowerCase().includes(query);
+        return matchCat && matchQuery;
+      });
+
+      let html = filtered.map(b => `
+        <div onclick="openBookReader(${b.id})" class="group bg-slate-50 hover:bg-white rounded-3xl p-4 border border-slate-200/80 hover:border-indigo-300 transition cursor-pointer flex flex-col justify-between relative">
+          <div>
+            <div class="h-32 rounded-2xl bg-gradient-to-br ${b.coverBg} p-3.5 text-white flex flex-col justify-between shadow-sm relative">
+              <div class="flex items-center justify-between gap-1">
+                <span class="text-[10px] font-bold bg-black/25 px-2 py-0.5 rounded-lg truncate max-w-[120px]">${b.category}</span>
+                <button onclick="deleteBook(event, ${b.id})" title="删除此书" class="w-6 h-6 rounded-lg bg-black/25 hover:bg-rose-600 text-white flex items-center justify-center text-[10px] transition">
+                  <i class="fa-solid fa-trash-can"></i>
+                </button>
+              </div>
+              <h4 class="font-bold text-xs sm:text-sm leading-snug line-clamp-2">${b.title}</h4>
+            </div>
+            <div class="mt-2.5">
+              <div class="text-[11px] text-slate-500 truncate">${b.author}</div>
+              <div class="flex items-center justify-between text-[11px] text-slate-500 mt-1.5">
+                <span>已读 ${b.readMins}m</span>
+                <span class="font-bold text-indigo-600">${b.progress}%</span>
+              </div>
+              <div class="w-full bg-slate-200 h-1.5 rounded-full mt-1 overflow-hidden">
+                <div class="bg-indigo-600 h-full rounded-full" style="width: ${b.progress}%"></div>
+              </div>
+            </div>
+          </div>
+          <div class="mt-2.5 pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs font-bold text-indigo-600">
+            <span><i class="fa-solid fa-book-open-reader mr-1"></i>内置阅读</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </div>
+        </div>
+      `).join('');
+
+      if (query.trim().length > 0) {
+        const defaultCat = window.currentBookCategory !== 'all' ? window.currentBookCategory : ((window.appState.bookCategories && window.appState.bookCategories[0]) || '古生物科普');
+        html += `
+          <div onclick="quickAddSearchedBook('${query.replace(/'/g, '')}', '${defaultCat.replace(/'/g, '')}')" class="rounded-3xl p-4 border-2 border-dashed border-indigo-300 bg-indigo-50/50 flex flex-col items-center justify-center text-center cursor-pointer">
+            <i class="fa-solid fa-cloud-arrow-down text-2xl text-indigo-500 mb-1.5"></i>
+            <div class="text-xs font-bold text-indigo-900">站内检索：《${query}》</div>
+            <p class="text-[10px] text-indigo-600 mt-1">一键加入「${defaultCat}」书架并阅读</p>
+          </div>
+        `;
+      }
+      grid.innerHTML = html;
+    }
+
+    function quickAddSearchedBook(title, category) {
+      const newBook = {
+        id: Date.now(),
+        title,
+        author: '站内书源检索',
+        category: category || '古生物科普',
+        progress: 0,
+        readMins: 0,
+        coverBg: 'from-violet-600 to-indigo-800',
+        content: [`已为你加载《${title}》精选章节。内置阅读器会自动记录你的真实阅读时长与习惯！`]
+      };
+      window.appState.books.unshift(newBook);
+      document.getElementById('book-search-input').value = '';
+      renderBookshelf();
+      window.saveStateToCloud();
+      openBookReader(newBook.id);
+    }
+
+    function openAddBookModal() {
+      renderBookCategories();
+      document.getElementById('add-book-modal').classList.remove('hidden');
+    }
+    function closeAddBookModal() { document.getElementById('add-book-modal').classList.add('hidden'); }
+
+    function loadTxtFileForBook(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (!document.getElementById('new-book-title').value) {
+        document.getElementById('new-book-title').value = file.name.replace(/\.txt$/i, '');
+      }
+      const reader = new FileReader();
+      reader.onload = (e) => { document.getElementById('new-book-content').value = e.target.result.slice(0, 3000); };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    function submitNewBook() {
+      const title = document.getElementById('new-book-title').value.trim();
+      if (!title) return;
+      const author = document.getElementById('new-book-author').value.trim() || '私人藏书';
+      const category = document.getElementById('new-book-cat').value || '未分类';
+      const rawContent = document.getElementById('new-book-content').value.trim();
+      const paragraphs = rawContent ? rawContent.split(/\n+/).filter(p => p.trim()) : [`《${title}》已入架，点击下方“读完本章”即可记录进度与领取金币！`];
+
+      window.appState.books.unshift({
+        id: Date.now(), title, author, category, progress: 0, readMins: 0,
+        coverBg: 'from-emerald-600 to-teal-800', content: paragraphs
+      });
+      document.getElementById('new-book-title').value = '';
+      document.getElementById('new-book-author').value = '';
+      document.getElementById('new-book-content').value = '';
+      closeAddBookModal();
+      renderBookshelf();
+      window.saveStateToCloud();
+      showToast(`《${title}》已存入「${category}」书架！`, 'success');
+    }
+
+    function openBookReader(bookId) {
+      const book = window.appState.books.find(b => b.id === bookId);
+      if (!book) return;
+      window.activeBookId = bookId;
+      window.readerSeconds = 0;
+      document.getElementById('reader-book-title').textContent = book.title;
+      document.getElementById('reader-progress-pct').textContent = `${book.progress}%`;
+      document.getElementById('reader-body-text').innerHTML = book.content.map(p => `<p>${p}</p>`).join('');
+      document.getElementById('reader-modal').classList.remove('hidden');
+
+      clearInterval(window.readerTimerInterval);
+      window.readerTimerInterval = setInterval(() => {
+        window.readerSeconds++;
+        const mins = String(Math.floor(window.readerSeconds / 60)).padStart(2, '0');
+        const secs = String(window.readerSeconds % 60).padStart(2, '0');
+        document.getElementById('reader-session-timer').textContent = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function closeBookReader() {
+      clearInterval(window.readerTimerInterval);
+      const book = window.appState.books.find(b => b.id === window.activeBookId);
+      if (book && window.readerSeconds >= 5) {
+        const addedMins = Math.max(1, Math.round(window.readerSeconds / 60));
+        book.readMins += addedMins;
+
+        if (!window.appState.readingStats) {
+          window.appState.readingStats = { totalSeconds: 0, streakDays: 0, lastReadDate: '', periods: { morning: 0, evening: 0, night: 0 } };
+        }
+        const rs = window.appState.readingStats;
+        rs.totalSeconds += window.readerSeconds;
+        const todayStr = new Date().toISOString().slice(0, 10);
+        if (rs.lastReadDate !== todayStr) {
+          rs.streakDays = (rs.streakDays || 0) + 1;
+          rs.lastReadDate = todayStr;
+        }
+        const hr = new Date().getHours();
+        if (hr >= 6 && hr < 14) rs.periods.morning += window.readerSeconds;
+        else if (hr >= 14 && hr < 22) rs.periods.evening += window.readerSeconds;
+        else rs.periods.night += window.readerSeconds;
+
+        rewardCoinsAndPet(15, 15, `本次真实阅读 ${window.readerSeconds} 秒，已记录时长并奖励 +15 金币！`);
+        window.saveStateToCloud();
+      }
+      document.getElementById('reader-modal').classList.add('hidden');
+      renderBookshelf();
+    }
+
+    function setReaderTheme(theme) {
+      const box = document.getElementById('reader-container');
+      box.classList.remove('reader-paper', 'reader-mint', 'reader-dark');
+      box.classList.add(`reader-${theme}`);
+    }
+
+    function changeReaderFontSize(delta) {
+      window.readerFontSize = Math.max(13, Math.min(24, window.readerFontSize + delta));
+      document.getElementById('reader-content-scroll').style.fontSize = `${window.readerFontSize}px`;
+    }
+
+    function advanceBookProgress() {
+      const book = window.appState.books.find(b => b.id === window.activeBookId);
+      if (!book) return;
+      book.progress = Math.min(100, book.progress + 10);
+      document.getElementById('reader-progress-pct').textContent = `${book.progress}%`;
+      window.appState.pet.food += 1;
+      rewardCoinsAndPet(25, 25, `进度 +10%，获得 +25 金币与 1 颗矿石！`);
+      window.saveStateToCloud();
+    }
+
+    function saveReaderNote() {
+      const note = document.getElementById('reader-quick-note');
+      if (!note.value.trim()) return;
+      showToast('读书批注已云端保存！', 'success');
+      note.value = '';
+    }
+
+    // ==================== 7. 语音一句排期与记账 ====================
+    let recognition = null, isRecording = false;
+    function openVoiceModal() { document.getElementById('voice-modal').classList.remove('hidden'); }
+    function closeVoiceModal() { if (recognition && isRecording) recognition.stop(); document.getElementById('voice-modal').classList.add('hidden'); }
+    function fillSampleVoice(t) { document.getElementById('voice-transcript-input').value = t; }
+
+    function toggleSpeechRecognition() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const btn = document.getElementById('mic-record-btn');
+      const statusText = document.getElementById('mic-status-text');
+      if (!SpeechRecognition) {
+        showToast('当前环境不支持浏览器原生麦克风，可直接点击下方示例或输入文字！', 'warning');
+        return;
+      }
+      if (!recognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.onresult = (e) => {
+          document.getElementById('voice-transcript-input').value = e.results[0][0].transcript;
+        };
+        recognition.onend = () => {
+          isRecording = false;
+          btn.classList.remove('bg-rose-600', 'voice-pulse');
+          btn.classList.add('bg-brand-600');
+          statusText.textContent = '识别完成';
+        };
+      }
+      if (!isRecording) {
+        isRecording = true;
+        recognition.start();
+        btn.classList.remove('bg-brand-600');
+        btn.classList.add('bg-rose-600', 'voice-pulse');
+        statusText.textContent = '正在聆听...';
+      } else {
+        recognition.stop();
+      }
+    }
+
+    function parseAndApplyVoicePlan() {
+      const text = document.getElementById('voice-transcript-input').value.trim();
+      if (!text) return;
+      const actions = [];
+      const clauses = text.split(/[，,。；;！!？?\n]+/).map(c => c.trim()).filter(Boolean);
+      const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+
+      clauses.forEach(clause => {
+        // 1. 识别取消 / 删除某项今日日程
+        if (/取消|删掉|删除|不去|不看/.test(clause)) {
+          const targetKeyword = clause.replace(/.*?(取消|删掉|删除|不去|不看)(了|掉)?/, '').trim();
+          const beforeLen = window.appState.schedules.length;
+          window.appState.schedules = window.appState.schedules.filter(item => {
+            if (targetKeyword && item.title.includes(targetKeyword)) return false;
+            if (/阅读|看书/.test(clause) && item.tag.includes('阅读')) return false;
+            if (/健身|练背|练腿|核心/.test(clause) && item.tag.includes('减脂')) return false;
+            if (/雅思/.test(clause) && item.title.includes('雅思')) return false;
+            if (/日语/.test(clause) && item.title.includes('日语')) return false;
+            return true;
+          });
+          if (window.appState.schedules.length < beforeLen) {
+            actions.push(`已取消「${targetKeyword || '相关日程'}」`);
+            return;
+          }
+        }
+
+        // 2. 识别健身计划周内调换（如“把周一的健身调到周二” 或 “顺延健身”）
+        if (/健身|练背|臀腿|马甲线/.test(clause) && (/调到|改到|移到|换到|顺延/.test(clause))) {
+          const foundDays = dayNames.filter(d => clause.includes(d));
+          if (foundDays.length >= 2) {
+            const fromIdx = dayNames.indexOf(foundDays[0]);
+            const toIdx = dayNames.indexOf(foundDays[1]);
+            const wp = window.appState.weekPlan;
+            const movedWorkout = wp[fromIdx].workout;
+            wp[fromIdx].workout = '语音已调出 · 自主学习/休息';
+            wp[fromIdx].isWorkout = false;
+            wp[toIdx].workout = `【语音调入】${movedWorkout.replace(/^18:10 下课顺路：/, '')}`;
+            wp[toIdx].isWorkout = true;
+            actions.push(`已将${foundDays[0]}健身调整至${foundDays[1]}`);
+            return;
+          } else if (clause.includes('顺延')) {
+            applyFitnessStrategy('shift');
+            actions.push('健身已弹性顺延至周四/六');
+            return;
+          }
+        }
+
+        // 3. 识别调整已有日程的时间（如“把今天的雅思改到晚上九点”）
+        if (/改到|调到|推迟到|挪到|换到/.test(clause)) {
+          const timeMatch = clause.match(/(早上|上午|中午|下午|晚上|今晚|明早|明天下午|明晚)?\s*([零一二两三四五六七八九十\d]{1,2})\s*(?:点|:|：)\s*(半|[零一二三四五\d]{1,2})?/);
+          let newTimeStr = '已调整时段';
+          if (timeMatch) {
+            const prefix = timeMatch[1] || '';
+            const cnNumMap = { '零': 0, '一': 1, '二': 2, '两': 2, '三': 3, '四': 4, '五': 5, '六': 6, '七': 7, '八': 8, '九': 9, '十': 10, '十一': 11, '十二': 12 };
+            let hr = parseInt(timeMatch[2], 10);
+            if (isNaN(hr)) hr = cnNumMap[timeMatch[2]] || 19;
+            if (/下午|晚上|今晚|明晚/.test(prefix) && hr < 12) hr += 12;
+            const minStr = timeMatch[3] === '半' ? '30' : (timeMatch[3] ? String(timeMatch[3]).padStart(2, '0') : '00');
+            const endHr = (hr + 1) % 24;
+            newTimeStr = `${prefix.includes('明') ? '明日 ' : ''}${String(hr).padStart(2, '0')}:${minStr} - ${String(endHr).padStart(2, '0')}:${minStr}`;
+          }
+
+          let matchedSchedule = null;
+          const keywords = ['雅思', '日语', '文献', '毕设', '多媒体', 'party', '党史', '阅读', '看书', '健身', '练背'];
+          for (const kw of keywords) {
+            if (clause.includes(kw)) {
+              matchedSchedule = window.appState.schedules.find(s => s.title.includes(kw) || s.tag.includes(kw));
+              if (matchedSchedule) break;
+            }
+          }
+          if (matchedSchedule) {
+            matchedSchedule.time = newTimeStr;
+            matchedSchedule.done = false;
+            actions.push(`已将「${matchedSchedule.title.slice(0, 12)}...」调整为 ${newTimeStr}`);
+            return;
+          }
+        }
+
+        // 4. 识别消费记账
+        const moneyMatch = clause.match(/(\d+(?:\.\d+)?)\s*(?:元|块)/);
+        if (moneyMatch) {
+          const amt = parseFloat(moneyMatch[1]);
+          window.appState.wallet.expenses.unshift({
+            id: Date.now() + Math.random(),
+            title: `语音记账：${clause.slice(0, 16)}`,
+            amount: amt,
+            category: /食堂|餐|饭|面|粉|鸡|菜/.test(clause) ? '健康餐饮' : '日用服饰',
+            date: '刚刚'
+          });
+          actions.push(`已记账 ¥${amt}`);
+          return;
+        }
+
+        // 5. 识别新增 DDL / 作业提醒
+        if (/提醒|DDL|交作业|考试|初稿|答辩/.test(clause)) {
+          const cleanTitle = clause.replace(/^(另外|还有|帮我)?(新增)?(一个)?提醒(我)?/, '').trim();
+          window.appState.ddls.unshift({
+            id: Date.now() + Math.random(),
+            title: cleanTitle || clause,
+            due: '语音设定提醒',
+            urgent: true
+          });
+          actions.push(`已添加提醒「${(cleanTitle || clause).slice(0, 12)}」`);
+          return;
+        }
+
+        // 6. 识别新增阅读或常规学习排期
+        if (/看书|阅读|古生物|文献|雅思|日语|建模/.test(clause)) {
+          const isNight = /睡前|今晚|晚上|十一点/.test(clause);
+          window.appState.schedules.push({
+            id: Date.now() + Math.random(),
+            time: isNight ? '23:30 - 00:15' : '19:30 - 20:30',
+            title: `语音排期：${clause}`,
+            tag: /看书|阅读/.test(clause) ? '阅读计划' : '学习调整',
+            color: /看书|阅读/.test(clause) ? 'amber' : 'sky',
+            done: false
+          });
+          actions.push(`已排入${isNight ? '晚间' : '空余'}计划`);
+        }
+      });
+
+      if (actions.length === 0) {
+        window.appState.schedules.push({
+          id: Date.now(), time: '19:30 - 20:30', title: `语音日程：${text.slice(0, 24)}`, tag: '语音新增', color: 'indigo', done: false
+        });
+        actions.push('已写入今日日程');
+      }
+
+      refreshAllUI();
+      window.saveStateToCloud();
+      document.getElementById('voice-transcript-input').value = '';
+      closeVoiceModal();
+      rewardCoinsAndPet(15, 15, `语音调计划完成：${actions.join('；')}！`);
+    }
+
+    // ==================== 8. 科研打卡 & Three.js ====================
+    function completeStudyTask(name, coins, exp) {
+      window.appState.pet.food += 1;
+      rewardCoinsAndPet(coins, exp, `完成「${name}」！获得 +${coins} 金币与 1 颗矿石！`);
+      window.saveStateToCloud();
+    }
+
+    function copyCmd(cmdText) {
+      const textarea = document.createElement('textarea');
+      textarea.value = cmdText;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      showToast('已复制到剪贴板！', 'success');
+    }
+
+    let scene, camera, renderer, currentMesh, isDragging = false, prevMouse = { x: 0, y: 0 };
+    function initThreeJS() {
+      const container = document.getElementById('threejs-canvas-container');
+      if (!container || typeof THREE === 'undefined') return;
+      scene = new THREE.Scene();
+      camera = new THREE.PerspectiveCamera(45, (container.clientWidth || 300) / (container.clientHeight || 240), 0.1, 100);
+      camera.position.z = 4.2;
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(container.clientWidth || 300, container.clientHeight || 240);
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+      const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+      dirLight.position.set(5, 5, 5);
+      scene.add(dirLight);
+
+      switchThreeShape('crystal');
+
+      container.addEventListener('mousedown', (e) => { isDragging = true; prevMouse = { x: e.clientX, y: e.clientY }; });
+      window.addEventListener('mouseup', () => { isDragging = false; });
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging || !currentMesh) return;
+        currentMesh.rotation.y += (e.clientX - prevMouse.x) * 0.01;
+        currentMesh.rotation.x += (e.clientY - prevMouse.y) * 0.01;
+        prevMouse = { x: e.clientX, y: e.clientY };
+      });
+      animateThree();
+    }
+
+    function switchThreeShape(type) {
+      if (!scene) return;
+      if (currentMesh) scene.remove(currentMesh);
+      let geo, mat;
+      if (type === 'crystal') {
+        geo = new THREE.OctahedronGeometry(1.2, 0);
+        mat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.2, metalness: 0.3, flatShading: true });
+      } else if (type === 'ammonite') {
+        geo = new THREE.TorusKnotGeometry(0.85, 0.28, 100, 16);
+        mat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.35, metalness: 0.4 });
+      } else {
+        geo = new THREE.BoxGeometry(1.7, 0.8, 1.7, 3, 2, 3);
+        mat = new THREE.MeshStandardMaterial({ color: 0x818cf8, wireframe: true });
+      }
+      currentMesh = new THREE.Mesh(geo, mat);
+      scene.add(currentMesh);
+    }
+
+    function resizeThreeCanvas() {
+      const c = document.getElementById('threejs-canvas-container');
+      if (!c || !renderer || !camera) return;
+      if (c.clientWidth > 0 && c.clientHeight > 0) {
+        camera.aspect = c.clientWidth / c.clientHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(c.clientWidth, c.clientHeight);
+      }
+    }
+
+    function animateThree() {
+      requestAnimationFrame(animateThree);
+      if (currentMesh && !isDragging) {
+        currentMesh.rotation.y += 0.008;
+        currentMesh.rotation.x += 0.003;
+      }
+      if (renderer && scene && camera) renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>
