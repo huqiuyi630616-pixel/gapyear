@@ -7,32 +7,23 @@ import {
   Heart, Gift, Trophy, Search, FileText, GraduationCap, Maximize2, Minimize2
 } from 'lucide-react';
 
-const STORAGE_KEY = 'gapyear_os_react_huqiuyi_v2';
+const STORAGE_KEY = 'gapyear_os_react_huqiuyi_clean_v3';
 
 const DEFAULT_STATE = {
-  coins: 120,
+  coins: 0,
   calories: {
     target: 1550,
-    meals: [
-      { id: 1, type: '早午餐 (09:30)', desc: '全麦欧包1个 + 水煮蛋2个 + 无糖黑咖啡', preCal: 390, leftoverCal: 0, netCal: 390, time: '09:35' },
-      { id: 2, type: '午餐 (12:40)', desc: '黄家湖食堂：杂粮饭 + 去皮卤鸡腿 + 清炒西兰花', preCal: 770, leftoverCal: 180, netCal: 590, time: '12:45' }
-    ]
+    meals: []
   },
   weights: [
-    { date: '11-17', val: 61.8 },
-    { date: '11-18', val: 61.6 },
-    { date: '11-19', val: 61.5 },
-    { date: '11-20', val: 61.3 },
-    { date: '11-21', val: 61.2 },
-    { date: '11-22', val: 61.1 },
-    { date: '11-23', val: 61.0 }
+    { date: '初始', val: 61.0 }
   ],
   schedules: [
-    { id: 1, time: '09:00 - 09:40', title: '晨起空腹称重 + 温水唤醒 + 高蛋白早午餐', tag: '作息与减脂', color: 'emerald', done: true },
-    { id: 2, time: '10:00 - 11:50', title: '雅思核心词 50个 + 地大黄爱武老师课题组文献精读', tag: '科研与雅思', color: 'sky', done: true },
+    { id: 1, time: '09:00 - 09:40', title: '晨起空腹称重 + 温水唤醒 + 高蛋白早午餐', tag: '作息与减脂', color: 'emerald', done: false },
+    { id: 2, time: '10:00 - 11:50', title: '雅思核心词 + 地大黄爱武老师课题组文献精读', tag: '科研与雅思', color: 'sky', done: false },
     { id: 3, time: '14:00 - 17:40', title: '【第13周周一】《多媒体设计2》连堂（教一楼二区603）', tag: '第13周课表', color: 'indigo', done: false },
     { id: 4, time: '18:10 - 19:10', title: '【第13周周一】下课顺路练背肩 + 爬坡25分钟', tag: '61kg减脂', color: 'rose', done: false },
-    { id: 5, time: '23:30 - 00:45', title: '睡前沉浸阅读：《三叶虫演化史》（01:30前准备入睡）', tag: '阅读习惯', color: 'amber', done: false }
+    { id: 5, time: '23:30 - 00:45', title: '睡前沉浸阅读（01:30前准备入睡）', tag: '阅读习惯', color: 'amber', done: false }
   ],
   ddls: [
     { id: 1, title: '第13周起：周一/三/五 14:00-17:40《多媒体设计2》', due: '教一楼二区 603', urgent: true },
@@ -49,13 +40,7 @@ const DEFAULT_STATE = {
   ],
   wallet: {
     budget: 1500,
-    expenses: [
-      { id: 1, title: '武科大黄家湖食堂餐饮汇总', amount: 412.5, category: '健康餐饮', date: '本月累计' },
-      { id: 2, title: '购买《三叶虫演化史》及地质专业书', amount: 148.0, category: '书籍学习', date: '11-18' },
-      { id: 3, title: '健身补剂与无糖黑咖啡', amount: 126.0, category: '健身运动', date: '11-15' },
-      { id: 4, title: '日常护肤与生活用品', amount: 118.0, category: '日用服饰', date: '11-12' },
-      { id: 5, title: '低卡零食与代糖饮品', amount: 38.0, category: '零食饮料', date: '11-20' }
-    ],
+    expenses: [],
     rewards: [
       { id: 1, title: '无罪恶感周末放纵美食一顿', cost: 150, icon: '🍜', redeemed: 0 },
       { id: 2, title: '入手一本心仪的古生物/设计画册', cost: 200, icon: '📚', redeemed: 0 },
@@ -70,76 +55,15 @@ const DEFAULT_STATE = {
     lastReadDate: '',
     periods: { morning: 0, evening: 0, night: 0 }
   },
-  books: [
-    {
-      id: 1,
-      title: '工程地质学原理（地大黄爱武组衔接）',
-      author: '中国地质大学出版社',
-      category: '地大专业',
-      progress: 0,
-      currentPage: 0,
-      readMins: 0,
-      coverBg: 'from-emerald-600 to-teal-800',
-      content: [
-        '第一章 工程地质学的研究对象与任务',
-        '工程地质学是研究与人类工程建筑活动有关的地质问题的学科。对于即将进入中国地质大学（武汉）黄爱武老师课题组开展研究生学习的你而言，掌握岩土体物理力学性质与地质灾害防治是核心基石。',
-        '第二章 岩土体的工程地质性质',
-        '岩石的物理性质包括密度、孔隙率、吸水性与软化性。在野外地质勘察中，结构面的发育程度往往决定了边坡与地下工程的稳定性。利用大四保研后的空档期，每天花 40 分钟精读基础概念，明年九月入学即可直接上手课题实验！'
-      ]
-    },
-    {
-      id: 2,
-      title: '三叶虫！演化史上的远古盔甲武士',
-      author: '理查德·福蒂',
-      category: '古生物科普',
-      progress: 0,
-      currentPage: 0,
-      readMins: 0,
-      coverBg: 'from-amber-600 to-orange-800',
-      content: [
-        '第一章 寒武纪海洋的霸主',
-        '在距今约5.21亿年前的寒武纪生命大爆发时期，三叶虫就已经披着方解石构成的复眼和坚硬背甲，在远古海洋中繁衍生息了。',
-        '第二章 方解石晶体复眼的奥秘',
-        '最令人惊叹的是三叶虫的方解石晶体复眼——这是地球生命史上最早演化出的精密光学系统之一，能够消除水下的球面像差。'
-      ]
-    },
-    {
-      id: 3,
-      title: '剑桥雅思真题 18 学术类精讲',
-      author: 'Cambridge Press',
-      category: '雅思日语',
-      progress: 0,
-      currentPage: 0,
-      readMins: 0,
-      coverBg: 'from-sky-600 to-blue-800',
-      content: [
-        'Chapter 1 地质与环境高频学术词汇',
-        'Section 4 学术讲座高频场景词汇：geological formation（地质构造）、sedimentation（沉积作用）、fossil record（化石记录）——这些词汇与你的地学背景天然契合！'
-      ]
-    },
-    {
-      id: 4,
-      title: '公共空间营造与参数化三维装置设计',
-      author: '环境艺术设计教研室',
-      category: '艺术设计',
-      progress: 0,
-      currentPage: 0,
-      readMins: 0,
-      coverBg: 'from-purple-600 to-indigo-800',
-      content: [
-        '第1节 校园公共空间叙事与互动装置',
-        '结合你第16周即将开始的《公共空间营造》课程，可以尝试在 Blender 中搭建可交互的校园公共艺术装置模型，并通过 Three.js 嵌入网页进行多角度展示。'
-      ]
-    }
-  ],
+  books: [],
   pet: {
     species: 'trilobite',
     name: '三叶虫·团子',
     emoji: '🪲',
-    level: 5,
-    exp: 410,
-    maxExp: 500,
-    food: 4
+    level: 1,
+    exp: 0,
+    maxExp: 100,
+    food: 0
   }
 };
 
@@ -374,10 +298,10 @@ export default function App() {
   // 饮食双图状态
   const [preImg, setPreImg] = useState('');
   const [postImg, setPostImg] = useState('');
-  const [preDesc, setPreDesc] = useState('黄家湖二食堂：杂粮饭 + 去皮卤鸡腿 + 清炒西兰花');
-  const [preCal, setPreCal] = useState(580);
-  const [leftoverRatio, setLeftoverRatio] = useState(26);
-  const [postCal, setPostCal] = useState(150);
+  const [preDesc, setPreDesc] = useState('');
+  const [preCal, setPreCal] = useState(0);
+  const [leftoverRatio, setLeftoverRatio] = useState(0);
+  const [postCal, setPostCal] = useState(0);
   const [mealType, setMealType] = useState('午餐 (12:30)');
   const [weightInput, setWeightInput] = useState('');
 
@@ -1862,6 +1786,17 @@ export default function App() {
                     />
                   </label>
                 </div>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem(STORAGE_KEY);
+                    setState(DEFAULT_STATE);
+                    setModalType(null);
+                    notify('已清空全部历史记录，恢复为纯净初始状态！', 'info');
+                  }}
+                  className="w-full py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold border border-rose-200 transition"
+                >
+                  一键重置并清空所有数据
+                </button>
               </div>
             )}
           </div>
