@@ -21,12 +21,12 @@ const DEFAULT_STATE = {
   schedules: [
     { id: 1, time: '09:00 - 09:40', title: '晨起空腹称重 + 温水唤醒 + 高蛋白早午餐', tag: '作息与减脂', color: 'emerald', done: false },
     { id: 2, time: '10:00 - 11:50', title: '雅思核心词 + 地大黄爱武老师课题组文献精读', tag: '科研与雅思', color: 'sky', done: false },
-    { id: 3, time: '14:00 - 17:40', title: '【第13周周一】《多媒体设计2》连堂（教一楼二区603）', tag: '第13周课表', color: 'indigo', done: false },
-    { id: 4, time: '18:10 - 19:10', title: '【第13周周一】下课顺路练背肩 + 爬坡25分钟', tag: '61kg减脂', color: 'rose', done: false },
+    { id: 3, time: '14:30 - 17:30', title: '【第13周周二】全天无坐班课 · 毕业设计(论文)自主推进（教一二区507）', tag: '第13周课表', color: 'indigo', done: false },
+    { id: 4, time: '19:30 - 21:00', title: '日语新标日跟读 + Three.js/Blender 3D建模实验', tag: '双语与建模', color: 'rose', done: false },
     { id: 5, time: '23:30 - 00:45', title: '睡前沉浸阅读（01:30前准备入睡）', tag: '阅读习惯', color: 'amber', done: false }
   ],
   ddls: [
-    { id: 1, title: '第13周起：周一/三/五 14:00-17:40《多媒体设计2》', due: '教一楼二区 603', urgent: true },
+    { id: 1, title: '第13周：周一/三/五 14:00-17:40《多媒体设计2》', due: '教一楼二区 603', urgent: true },
     { id: 2, title: '毕业设计(论文)推进（教一楼二区507）', due: '第13-15周重点', urgent: false }
   ],
   weekPlan: [
@@ -142,7 +142,6 @@ function extractBookToc(pages) {
   return toc.length ? toc : [{ title: '第 1 页 · 正文开始', page: 0 }];
 }
 
-// ==================== Three.js 3D 实验室组件 ====================
 function ThreeLabViewer() {
   const mountRef = useRef(null);
   const [shapeType, setShapeType] = useState('crystal');
@@ -279,7 +278,6 @@ function ThreeLabViewer() {
   );
 }
 
-// ==================== 主应用组件 ====================
 export default function App() {
   const [state, setState] = useState(() => {
     try {
@@ -295,7 +293,6 @@ export default function App() {
   const [nowTime, setNowTime] = useState(new Date());
   const [weather, setWeather] = useState({ temp: 14, desc: '多云转晴', icon: '🌤️', loc: '武汉·武科大黄家湖校区' });
 
-  // 饮食双图状态
   const [preImg, setPreImg] = useState('');
   const [postImg, setPostImg] = useState('');
   const [preDesc, setPreDesc] = useState('');
@@ -305,10 +302,8 @@ export default function App() {
   const [mealType, setMealType] = useState('午餐 (12:30)');
   const [weightInput, setWeightInput] = useState('');
 
-  // 课表周次
   const [selectedWeek, setSelectedWeek] = useState('week13');
 
-  // 书架与阅读器状态
   const [bookCat, setBookCat] = useState('all');
   const [bookSearch, setBookSearch] = useState('');
   const [activeBookId, setActiveBookId] = useState(null);
@@ -324,31 +319,32 @@ export default function App() {
   const readerScrollRef = useRef(null);
   const touchStartXRef = useRef(null);
 
-  // 模态框状态
   const [modalType, setModalType] = useState(null);
   const [voiceText, setVoiceText] = useState('');
-  const [expenseForm, setExpenseForm] = useState({ title: '', amount: '15.0', category: '健康餐饮' });
+  const voiceTextRef = useRef('');
+  const [isListeningVoice, setIsListeningVoice] = useState(false);
+  const recognitionRef = useRef(null);
+  const [expenseForm, setExpenseForm] = useState({ kind: 'expense', title: '', amount: '15.0', category: '健康餐饮' });
   const [budgetInput, setBudgetInput] = useState(String(state.wallet.budget));
   const [rewardForm, setRewardForm] = useState({ title: '', cost: '120', icon: '🎁' });
   const [newCatInput, setNewCatInput] = useState('');
   const [newBookForm, setNewBookForm] = useState({ title: '', author: '', category: '地大专业', content: '' });
   const [newDDLForm, setNewDDLForm] = useState({ title: '', due: '本周五 22:00' });
   const [editMealForm, setEditMealForm] = useState({ id: null, type: '午餐 (12:30)', desc: '', preCal: 0, leftoverCal: 0 });
+  const [editDayForm, setEditDayForm] = useState({ idx: 0, day: '', classesText: '', workout: '', isWorkout: false });
+  const [editTxForm, setEditTxForm] = useState({ id: null, kind: 'expense', title: '', amount: '0', category: '健康餐饮' });
 
-  // 自动保存到 localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {}
   }, [state]);
 
-  // 实时时钟
   useEffect(() => {
     const timer = setInterval(() => setNowTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
 
-  // 获取武汉黄家湖实时天气
   useEffect(() => {
     fetch('https://api.open-meteo.com/v1/forecast?latitude=30.4408&longitude=114.2654&current_weather=true')
       .then((r) => r.json())
@@ -367,7 +363,6 @@ export default function App() {
       .catch(() => {});
   }, []);
 
-  // 阅读计时器
   useEffect(() => {
     if (!activeBookId) return;
     const interval = setInterval(() => setReaderSecs((s) => s + 1), 1000);
@@ -398,11 +393,45 @@ export default function App() {
           level: newLevel,
           exp: newExp,
           maxExp: newMaxExp,
-          food: prev.pet.food + foodDelta
+          food: Math.max(0, prev.pet.food + foodDelta)
         }
       };
     });
     if (msg) notify(msg, 'success');
+  };
+
+  const handleWeekChange = (weekKey) => {
+    setSelectedWeek(weekKey);
+    setState((prev) => {
+      const wp = prev.weekPlan.map((d) => ({ ...d }));
+      if (weekKey === 'week13') {
+        wp[0] = { day: '周一 (11.23)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：美背直角肩 + 爬坡25m', isWorkout: true, done: false };
+        wp[1] = { day: '周二 (11.24)', classes: ['全天无坐班课 · 毕业设计自主推进'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false };
+        wp[2] = { day: '周三 (11.25)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false };
+        wp[3] = { day: '周四 (11.26)', classes: ['全天无坐班课 · 毕业设计自主推进'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false };
+        wp[4] = { day: '周五 (11.27)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：核心马甲线 + 拉伸放松', isWorkout: true, done: false };
+        wp[5] = { day: '周六 (11.28)', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false };
+        wp[6] = { day: '周日 (11.29)', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false };
+      } else if (weekKey === 'week14_15') {
+        wp[0] = { day: '周一', classes: ['14:00-17:40 多媒体设计2 (教一二区603)'], workout: '18:10 美背直角肩 + 爬坡25m', isWorkout: true, done: false };
+        wp[1] = { day: '周二', classes: ['14:00-17:40 学科综合设计(二) (教一二区603)'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false };
+        wp[2] = { day: '周三', classes: ['08:20-12:00 学科综合设计(二)', '14:00-17:40 多媒体设计2 (14周)'], workout: '18:10 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false };
+        wp[3] = { day: '周四', classes: ['14:00-17:40 学科综合设计(二) (教一二区603)'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false };
+        wp[4] = { day: '周五', classes: ['14:00-17:40 多媒体设计2 (教一二区603)'], workout: '18:10 核心马甲线 + 拉伸放松', isWorkout: true, done: false };
+        wp[5] = { day: '周六', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false };
+        wp[6] = { day: '周日', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false };
+      } else {
+        wp[0] = { day: '周一', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 美背直角肩 + 爬坡25m', isWorkout: true, done: false };
+        wp[1] = { day: '周二', classes: ['14:00-17:40 学科综合设计(二) (16周)'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false };
+        wp[2] = { day: '周三', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false };
+        wp[3] = { day: '周四', classes: ['14:00-17:40 学科综合设计(二) (16周)'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false };
+        wp[4] = { day: '周五', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 核心马甲线 + 拉伸放松', isWorkout: true, done: false };
+        wp[5] = { day: '周六', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false };
+        wp[6] = { day: '周日', classes: [], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false };
+      }
+      return { ...prev, weekPlan: wp };
+    });
+    notify('已切换教学周课表！', 'info');
   };
 
   const handlePhotoUpload = (e, stage) => {
@@ -412,173 +441,267 @@ export default function App() {
     reader.onload = (ev) => {
       if (stage === 'pre') {
         setPreImg(ev.target.result);
-        const est = Math.floor(540 + Math.random() * 160);
+        const est = Math.floor(520 + Math.random() * 180);
         setPreCal(est);
+        setPreDesc('AI识别：二食堂减脂餐（杂粮米饭 + 鸡腿肉 + 清炒时蔬）');
         setPostCal(Math.round(est * (leftoverRatio / 100)));
         notify(`餐前识别完成：约 ${est} kcal`, 'info');
       } else {
         setPostImg(ev.target.result);
-        const ratio = Math.floor(18 + Math.random() * 22);
+        const ratio = Math.floor(15 + Math.random() * 25);
         setLeftoverRatio(ratio);
-        setPostCal(Math.round(preCal * (ratio / 100)));
-        notify(`餐后对比完成：剩余 ${ratio}%，已扣除残余热量！`, 'success');
+        const base = preCal || 580;
+        if (!preCal) setPreCal(base);
+        setPostCal(Math.round(base * (ratio / 100)));
+        notify(`餐后对比完成：剩余 ${ratio}%，已自动扣除残余热量！`, 'success');
       }
     };
     reader.readAsDataURL(file);
   };
 
   const commitMeal = () => {
-    const netCal = Math.max(0, Number(preCal) - Number(postCal));
-    const timeStr = `${String(nowTime.getHours()).padStart(2, '0')}:${String(nowTime.getMinutes()).padStart(2, '0')}`;
+    const netCal = Math.max(0, preCal - postCal);
+    if (netCal <= 0 && preCal <= 0) {
+      notify('请先拍摄照片或输入餐前热量哦！', 'warning');
+      return;
+    }
+    const now = new Date();
+    const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     setState((prev) => ({
       ...prev,
       calories: {
         ...prev.calories,
-        meals: [{ id: Date.now(), type: mealType, desc: preDesc, preCal: Number(preCal), leftoverCal: Number(postCal), netCal, time: timeStr }, ...prev.calories.meals]
+        meals: [
+          {
+            id: Date.now(),
+            type: mealType,
+            desc: preDesc || '日常减脂餐记录',
+            preCal,
+            leftoverCal: postCal,
+            netCal,
+            time: timeStr
+          },
+          ...prev.calories.meals
+        ]
       }
     }));
-    grantReward(20, 20, `净摄入 ${netCal} kcal 已入账，获得 +20 自律金币！`);
+    setPreImg('');
+    setPostImg('');
+    setPreDesc('');
+    setPreCal(0);
+    setLeftoverRatio(0);
+    setPostCal(0);
+    grantReward(20, 20, `饮食记录已入账（净摄入 ${netCal} kcal），获得 +20 自律金币！`);
   };
 
-  const handleWeekChange = (wk) => {
-    setSelectedWeek(wk);
-    const presets = {
-      week13: [
-        { day: '周一 (11.23)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：美背直角肩 + 爬坡25m', isWorkout: true, done: false },
-        { day: '周二 (11.24)', classes: ['全天无坐班课 · 毕业设计自主推进'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false },
-        { day: '周三 (11.25)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false },
-        { day: '周四 (11.26)', classes: ['全天无坐班课 · 毕业设计自主推进'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false },
-        { day: '周五 (11.27)', classes: ['14:00-17:40 多媒体设计2 (教一二区603)', '毕业设计(论文) (教一二区507·自主)'], workout: '18:10 下课顺路：核心马甲线 + 拉伸放松', isWorkout: true, done: false },
-        { day: '周六 (11.28)', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false },
-        { day: '周日 (11.29)', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false }
-      ],
-      week14_15: [
-        { day: '周一', classes: ['14:00-17:40 多媒体设计2 (教一二区603)'], workout: '18:10 美背直角肩 + 爬坡25m', isWorkout: true, done: false },
-        { day: '周二', classes: ['14:00-17:40 学科综合设计(二) (教一二区603)'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false },
-        { day: '周三', classes: ['08:20-12:00 学科综合设计(二)', '14:00-17:40 多媒体设计2'], workout: '18:10 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false },
-        { day: '周四', classes: ['14:00-17:40 学科综合设计(二) (教一二区603)'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false },
-        { day: '周五', classes: ['14:00-17:40 多媒体设计2 (教一二区603)'], workout: '18:10 核心马甲线 + 拉伸放松', isWorkout: true, done: false },
-        { day: '周六', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false },
-        { day: '周日', classes: ['20:30-22:10 歌声中的党史Z (智慧树)'], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false }
-      ],
-      week16_19: [
-        { day: '周一', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 美背直角肩 + 爬坡25m', isWorkout: true, done: false },
-        { day: '周二', classes: ['14:00-17:40 学科综合设计(二) (16周)'], workout: '科研文献 + 雅思精听训练', isWorkout: false, done: false },
-        { day: '周三', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 蜜桃臀腿塑形 + 椭圆机', isWorkout: true, done: false },
-        { day: '周四', classes: ['14:00-17:40 学科综合设计(二) (16周)'], workout: '日语跟读 + 3D建模工作台', isWorkout: false, done: false },
-        { day: '周五', classes: ['08:20-12:00 公共空间营造 (裴磊·教一二区603)'], workout: '16:30 核心马甲线 + 拉伸放松', isWorkout: true, done: false },
-        { day: '周六', classes: [], workout: '周末户外散步 / 欺骗餐微调', isWorkout: false, done: false },
-        { day: '周日', classes: [], workout: '周体重复盘 + 睡前沉浸阅读', isWorkout: false, done: false }
-      ]
-    };
-    if (presets[wk]) {
-      setState((prev) => ({ ...prev, weekPlan: presets[wk] }));
-      notify('已同步切换教学周课表（08:20-12:00 / 14:00-17:40 连堂制）', 'info');
+  const applyFitnessMode = (mode) => {
+    setState((prev) => {
+      const wp = prev.weekPlan.map((d) => ({ ...d }));
+      if (mode === 'normal') {
+        wp[0].workout = '18:10 下课顺路：美背直角肩 + 爬坡25m';
+        wp[0].isWorkout = true;
+        wp[1].workout = '全天自由 · 科研文献 + 雅思精听';
+        wp[1].isWorkout = false;
+        wp[2].workout = '18:10 下课顺路：蜜桃臀腿塑形 + 椭圆机';
+        wp[2].isWorkout = true;
+        wp[3].workout = '全天自由 · 日语跟读 + 3D建模';
+        wp[3].isWorkout = false;
+        wp[4].workout = '18:10 下课顺路：核心马甲线 + 拉伸放松';
+        wp[4].isWorkout = true;
+        wp[5].workout = '周末户外散步 / 欺骗餐微调';
+        wp[5].isWorkout = false;
+      } else if (mode === 'shift') {
+        wp[0].workout = '18:10 下课顺路：美背直角肩 + 爬坡25m';
+        wp[0].isWorkout = true;
+        wp[2].workout = '下午连堂后休息 · 睡前10m拉伸';
+        wp[2].isWorkout = false;
+        wp[3].workout = '【顺延】16:30 蜜桃臀腿塑形 + 椭圆机';
+        wp[3].isWorkout = true;
+        wp[4].workout = '下午连堂后休息 · 调整恢复';
+        wp[4].isWorkout = false;
+        wp[5].workout = '【顺延】15:30 核心马甲线冲刺';
+        wp[5].isWorkout = true;
+      } else if (mode === 'dorm') {
+        wp[0].workout = '室内宿舍35m：哑铃美背 + 帕梅拉燃脂';
+        wp[0].isWorkout = true;
+        wp[2].workout = '室内宿舍35m：弹力带蜜桃臀 + 自重深蹲';
+        wp[2].isWorkout = true;
+        wp[4].workout = '室内宿舍30m：核心马甲线 + 全身泡沫轴拉伸';
+        wp[4].isWorkout = true;
+      }
+      return { ...prev, weekPlan: wp };
+    });
+    if (mode === 'normal') notify('已恢复 1/3/5 下午17:40下课顺路练排期！', 'info');
+    if (mode === 'shift') notify('已弹性顺延至周四与周六，避开连堂疲劳！', 'success');
+    if (mode === 'dorm') notify('已切换为室内宿舍 35 分钟无器械/小哑铃跟练模式！', 'warning');
+  };
+
+  const toggleVoiceMic = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      notify('当前浏览器不支持原生麦克风，可直接在下方输入框打字或语音输入法输入！', 'warning');
+      return;
     }
+    if (isListeningVoice && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListeningVoice(false);
+      return;
+    }
+    const rec = new SpeechRecognition();
+    rec.lang = 'zh-CN';
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.onstart = () => setIsListeningVoice(true);
+    rec.onresult = (e) => {
+      let transcript = '';
+      for (let i = 0; i < e.results.length; i++) {
+        transcript += e.results[i][0].transcript;
+      }
+      voiceTextRef.current = transcript;
+      setVoiceText(transcript);
+    };
+    rec.onerror = () => {
+      setIsListeningVoice(false);
+      notify('未检测到语音输入，可直接打字或使用手机输入法语音转文字', 'info');
+    };
+    rec.onend = () => setIsListeningVoice(false);
+    recognitionRef.current = rec;
+    rec.start();
   };
 
-  const applyVoicePlan = () => {
-    const text = voiceText.trim();
-    if (!text) return;
+  const applyVoicePlan = (directInput) => {
+    const raw = typeof directInput === 'string' ? directInput : (voiceTextRef.current || voiceText);
+    const text = raw.trim();
+    if (!text) {
+      notify('请先说话或输入需要调整的计划内容哦！', 'warning');
+      return;
+    }
+
     const clauses = text.split(/[，,。；;！!？?\n]+/).map((c) => c.trim()).filter(Boolean);
     const dayNames = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
+    const cnNumMap = { 零: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10, 十一: 11, 十二: 12 };
+
+    const parseTimeRange = (str) => {
+      const m = str.match(/(早上|上午|中午|下午|晚上|今晚|明早|明晚)?\s*([零一二两三四五六七八九十\d]{1,2})\s*(?:点|:|：)\s*(半|\d{1,2})?/);
+      if (!m) return null;
+      const prefix = m[1] || '';
+      let hr = parseInt(m[2], 10);
+      if (isNaN(hr)) hr = cnNumMap[m[2]] ?? 19;
+      if (/下午|晚上|今晚|明晚/.test(prefix) && hr < 12) hr += 12;
+      const min = m[3] === '半' ? '30' : (m[3] ? String(m[3]).padStart(2, '0') : '00');
+      const endHr = (hr + 1) % 24;
+      return `${prefix.includes('明') ? '明日 ' : ''}${String(hr).padStart(2, '0')}:${min} - ${String(endHr).padStart(2, '0')}:${min}`;
+    };
+
+    let nextSchedules = state.schedules.map((s) => ({ ...s }));
+    let nextWeekPlan = state.weekPlan.map((d) => ({ ...d }));
+    let nextDDLs = state.ddls.map((d) => ({ ...d }));
+    let nextExpenses = state.wallet.expenses.map((e) => ({ ...e }));
     const actions = [];
 
-    setState((prev) => {
-      let nextSchedules = [...prev.schedules];
-      let nextWeekPlan = prev.weekPlan.map((d) => ({ ...d }));
-      let nextDDLs = [...prev.ddls];
-      let nextExpenses = [...prev.wallet.expenses];
-
-      clauses.forEach((clause) => {
-        if (/取消|删掉|删除|不去|不看/.test(clause)) {
-          const kw = clause.replace(/.*?(取消|删掉|删除|不去|不看)(了|掉)?/, '').trim();
-          const before = nextSchedules.length;
-          nextSchedules = nextSchedules.filter((item) => {
-            if (kw && item.title.includes(kw)) return false;
-            if (/阅读|看书/.test(clause) && item.tag.includes('阅读')) return false;
-            if (/健身|练背|练腿|核心/.test(clause) && item.tag.includes('减脂')) return false;
-            if (/雅思/.test(clause) && item.title.includes('雅思')) return false;
-            return true;
-          });
-          if (nextSchedules.length < before) {
-            actions.push(`已取消「${kw || '相关计划'}」`);
-            return;
-          }
-        }
-
-        if (/健身|练背|臀腿|马甲线/.test(clause) && /调到|改到|移到|换到|顺延/.test(clause)) {
-          const foundDays = dayNames.filter((d) => clause.includes(d));
-          if (foundDays.length >= 2) {
-            const fromIdx = dayNames.indexOf(foundDays[0]);
-            const toIdx = dayNames.indexOf(foundDays[1]);
-            const moved = nextWeekPlan[fromIdx].workout;
-            nextWeekPlan[fromIdx].workout = '语音已调出 · 自主学习/休息';
-            nextWeekPlan[fromIdx].isWorkout = false;
-            nextWeekPlan[toIdx].workout = `【语音调入】${moved.replace(/^18:10 下课顺路：/, '')}`;
-            nextWeekPlan[toIdx].isWorkout = true;
-            actions.push(`已将${foundDays[0]}健身调至${foundDays[1]}`);
-            return;
-          }
-        }
-
-        if (/改到|调到|推迟到|挪到|换到/.test(clause)) {
-          const keywords = ['雅思', '日语', '文献', '毕设', '多媒体', '阅读', '看书', '健身'];
-          const matched = nextSchedules.find((s) => keywords.some((k) => clause.includes(k) && (s.title.includes(k) || s.tag.includes(k))));
-          if (matched) {
-            const timeMatch = clause.match(/(早上|上午|中午|下午|晚上|今晚|明晚)?\s*([零一二两三四五六七八九十\d]{1,2})\s*(?:点|:|：)\s*(半|\d{1,2})?/);
-            let newTime = '已调整时段';
-            if (timeMatch) {
-              const cnMap = { 零: 0, 一: 1, 二: 2, 两: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9, 十: 10, 十一: 11, 十二: 12 };
-              let hr = parseInt(timeMatch[2], 10);
-              if (isNaN(hr)) hr = cnMap[timeMatch[2]] || 20;
-              if (/下午|晚上|今晚|明晚/.test(timeMatch[1] || '') && hr < 12) hr += 12;
-              const min = timeMatch[3] === '半' ? '30' : (timeMatch[3] ? String(timeMatch[3]).padStart(2, '0') : '00');
-              newTime = `${String(hr).padStart(2, '0')}:${min} - ${String((hr + 1) % 24).padStart(2, '0')}:${min}`;
-            }
-            matched.time = newTime;
-            actions.push(`已调整「${matched.title.slice(0, 10)}...」至 ${newTime}`);
-            return;
-          }
-        }
-
-        const moneyMatch = clause.match(/(\d+(?:\.\d+)?)\s*(?:元|块)/);
-        if (moneyMatch) {
-          const amt = parseFloat(moneyMatch[1]);
-          nextExpenses.unshift({ id: Date.now() + Math.random(), title: `语音记账：${clause.slice(0, 15)}`, amount: amt, category: '健康餐饮', date: '刚刚' });
-          actions.push(`已记账 ¥${amt}`);
-          return;
-        }
-
-        if (/提醒|DDL|交作业|初稿/.test(clause)) {
-          nextDDLs.unshift({ id: Date.now() + Math.random(), title: clause, due: '语音提醒', urgent: true });
-          actions.push('已新增提醒');
-          return;
-        }
-
-        nextSchedules.push({
-          id: Date.now() + Math.random(),
-          time: /睡前|今晚|晚上/.test(clause) ? '23:30 - 00:15' : '19:30 - 20:30',
-          title: `语音排期：${clause}`,
-          tag: '语音新增',
-          color: 'indigo',
-          done: false
+    clauses.forEach((clause) => {
+      // 1. 取消 / 删除日程
+      if (/取消|删掉|删除|不去|不看/.test(clause)) {
+        const kw = clause.replace(/.*?(取消|删掉|删除|不去|不看)(了|掉)?/, '').trim();
+        const before = nextSchedules.length;
+        nextSchedules = nextSchedules.filter((item) => {
+          if (kw && (item.title.includes(kw) || item.tag.includes(kw))) return false;
+          if (/阅读|看书/.test(clause) && (item.title.includes('阅读') || item.tag.includes('阅读'))) return false;
+          if (/健身|练背|练腿|核心/.test(clause) && (item.title.includes('健身') || item.tag.includes('减脂'))) return false;
+          if (/雅思/.test(clause) && item.title.includes('雅思')) return false;
+          if (/日语/.test(clause) && item.title.includes('日语')) return false;
+          return true;
         });
-        actions.push('已加入日程');
-      });
+        if (nextSchedules.length < before) {
+          actions.push(`已取消「${kw || '相关计划'}」`);
+          return;
+        }
+      }
 
-      return {
-        ...prev,
-        schedules: nextSchedules,
-        weekPlan: nextWeekPlan,
-        ddls: nextDDLs,
-        wallet: { ...prev.wallet, expenses: nextExpenses }
-      };
+      // 2. 周内健身调换
+      if (/健身|练背|臀腿|马甲线/.test(clause) && /调到|改到|移到|换到|顺延/.test(clause)) {
+        const foundDays = dayNames.filter((d) => clause.includes(d));
+        if (foundDays.length >= 2) {
+          const fromIdx = dayNames.indexOf(foundDays[0]);
+          const toIdx = dayNames.indexOf(foundDays[1]);
+          const moved = nextWeekPlan[fromIdx].workout;
+          nextWeekPlan[fromIdx].workout = '语音已调出 · 自主学习/休息';
+          nextWeekPlan[fromIdx].isWorkout = false;
+          nextWeekPlan[toIdx].workout = `【语音调入】${moved.replace(/^18:10 下课顺路：/, '')}`;
+          nextWeekPlan[toIdx].isWorkout = true;
+          actions.push(`已将${foundDays[0]}健身调至${foundDays[1]}`);
+          return;
+        }
+      }
+
+      // 3. 调整已有日程时段
+      if (/改到|调到|推迟到|挪到|换到/.test(clause)) {
+        const keywords = ['雅思', '日语', '文献', '毕设', '毕业设计', '多媒体', '阅读', '看书', '健身', '建模'];
+        const matched = nextSchedules.find((s) =>
+          keywords.some((k) => clause.includes(k) && (s.title.includes(k) || s.tag.includes(k)))
+        );
+        if (matched) {
+          const newTime = parseTimeRange(clause) || '已调整时段';
+          matched.time = newTime;
+          matched.done = false;
+          actions.push(`已将「${matched.title.slice(0, 12)}...」调整至 ${newTime}`);
+          return;
+        }
+      }
+
+      // 4. 消费 / 收入记账
+      const moneyMatch = clause.match(/(\d+(?:\.\d+)?)\s*(?:元|块)/);
+      if (moneyMatch) {
+        const amt = parseFloat(moneyMatch[1]);
+        const isInc = /收入|工资|奖学金|兼职|进账|收到|红包|报销/.test(clause);
+        nextExpenses.unshift({
+          id: Date.now() + Math.random(),
+          kind: isInc ? 'income' : 'expense',
+          title: `${isInc ? '语音收入' : '语音记账'}：${clause.slice(0, 16)}`,
+          amount: amt,
+          category: isInc ? '奖学金/兼职' : (/食堂|餐|饭|面|粉|鸡|菜/.test(clause) ? '健康餐饮' : '日用服饰'),
+          date: '刚刚'
+        });
+        actions.push(`${isInc ? '已记收入' : '已记支出'} ¥${amt}`);
+        return;
+      }
+
+      // 5. 新增 DDL / 提醒
+      if (/提醒|DDL|交作业|初稿|答辩/.test(clause)) {
+        const cleanTitle = clause.replace(/^(另外|还有|帮我)?(新增)?(一个)?提醒(我)?/, '').trim() || clause;
+        nextDDLs.unshift({ id: Date.now() + Math.random(), title: cleanTitle, due: '语音设定提醒', urgent: true });
+        actions.push(`已新增提醒「${cleanTitle.slice(0, 12)}」`);
+        return;
+      }
+
+      // 6. 通用新增日程排期（自动识别口语时间或智能分配空余时段）
+      const extractedTime = parseTimeRange(clause) || (/睡前|今晚|晚上/.test(clause) ? '21:30 - 22:30' : /下午/.test(clause) ? '15:00 - 16:30' : '19:00 - 20:00');
+      nextSchedules.push({
+        id: Date.now() + Math.random(),
+        time: extractedTime,
+        title: `语音排期：${clause}`,
+        tag: /看书|阅读/.test(clause) ? '阅读计划' : /健身|跑步|练/.test(clause) ? '61kg减脂' : '语音新增',
+        color: /看书|阅读/.test(clause) ? 'amber' : /健身|跑步|练/.test(clause) ? 'rose' : 'indigo',
+        done: false
+      });
+      actions.push(`已排入 ${extractedTime} 日程`);
     });
 
+    setState((prev) => ({
+      ...prev,
+      schedules: nextSchedules,
+      weekPlan: nextWeekPlan,
+      ddls: nextDDLs,
+      wallet: { ...prev.wallet, expenses: nextExpenses }
+    }));
+
+    if (recognitionRef.current && isListeningVoice) {
+      recognitionRef.current.stop();
+    }
+    voiceTextRef.current = '';
     setVoiceText('');
     setModalType(null);
-    grantReward(15, 15, `语音调计划完成：${actions.join('；')}`);
+    grantReward(15, 15, `语音执行成功：${actions.join('；')}`);
   };
 
   const handleOpenBook = (book) => {
@@ -649,7 +772,6 @@ export default function App() {
     notify(`已完整导入《${file.name}》（共 ${cleaned.length} 字），支持自动分章与翻页阅读！`, 'success');
   };
 
-  // 键盘左右方向键支持翻页，Esc 退出全屏
   useEffect(() => {
     if (!activeBookId) return;
     const book = state.books.find((b) => b.id === activeBookId);
@@ -673,22 +795,28 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [activeBookId, readerMode, readerPage, state.books, isReaderFullscreen]);
 
-  // 计算聚合统计
   const totalNetCal = state.calories.meals.reduce((a, b) => a + b.netCal, 0);
   const totalSavedCal = state.calories.meals.reduce((a, b) => a + b.leftoverCal, 0);
   const latestWeight = state.weights[state.weights.length - 1]?.val || 61.0;
-  const totalSpent = state.wallet.expenses.reduce((a, b) => a + b.amount, 0);
-  const savedMoney = Math.max(0, state.wallet.budget - totalSpent);
+  const totalSpent = state.wallet.expenses
+    .filter((e) => (e.kind || 'expense') === 'expense')
+    .reduce((a, b) => a + b.amount, 0);
+  const totalIncome = state.wallet.expenses
+    .filter((e) => e.kind === 'income')
+    .reduce((a, b) => a + b.amount, 0);
+  const savedMoney = Math.max(0, state.wallet.budget + totalIncome - totalSpent);
   const activeBook = state.books.find((b) => b.id === activeBookId);
 
-  const weekNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
   const hmStr = `${String(nowTime.getHours()).padStart(2, '0')}:${String(nowTime.getMinutes()).padStart(2, '0')}`;
   const secStr = `${String(nowTime.getSeconds()).padStart(2, '0')}s`;
-  const dateStr = `2026年11月23日 星期一`;
+  const weekDayNames = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  const dateStr = `${nowTime.getFullYear()}年${nowTime.getMonth() + 1}月${nowTime.getDate()}日 ${weekDayNames[nowTime.getDay()]}`;
+  const week13Monday = new Date(2026, 10, 23, 0, 0, 0);
+  const currentTeachingWeek = Math.max(1, 13 + Math.floor((nowTime - week13Monday) / (7 * 24 * 3600 * 1000)));
+  const todayPlanSummary = state.weekPlan[(nowTime.getDay() + 6) % 7];
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 pb-24 lg:pb-10 font-sans">
-      {/* Toast 通知 */}
       <div className="fixed top-4 right-4 left-4 sm:left-auto z-50 flex flex-col gap-2 pointer-events-none">
         {toasts.map((t) => (
           <div
@@ -703,7 +831,6 @@ export default function App() {
         ))}
       </div>
 
-      {/* 顶部导航栏 */}
       <header className="sticky top-0 z-30 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
           <div className="flex items-center gap-2.5 min-w-0">
@@ -725,7 +852,6 @@ export default function App() {
             </div>
           </div>
 
-          {/* 桌面导航 */}
           <nav className="hidden lg:flex items-center gap-1 bg-slate-100/90 p-1 rounded-2xl">
             {[
               { id: 'dashboard', label: '今日总览', icon: Compass },
@@ -752,7 +878,6 @@ export default function App() {
             })}
           </nav>
 
-          {/* 右侧金币与语音按钮 */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setActiveTab('wallet')}
@@ -773,10 +898,8 @@ export default function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-3 sm:px-6 pt-4 sm:pt-6">
-        {/* ==================== TAB 1: 今日总览 ==================== */}
         {activeTab === 'dashboard' && (
           <div className="space-y-5">
-            {/* 实时时钟 + 黄家湖天气横幅 */}
             <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-4 sm:p-5 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/15 flex flex-col items-center justify-center shrink-0">
@@ -786,9 +909,13 @@ export default function App() {
                 <div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm sm:text-base font-bold">{dateStr}</span>
-                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950">第13周 · 首日</span>
+                    <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-400 text-slate-950">
+                      第{currentTeachingWeek}周 · 2026-2027秋季学期
+                    </span>
                   </div>
-                  <p className="text-xs text-slate-300 mt-1">今日 14:00-17:40《多媒体设计2》（教一二区603），18:10 下课顺路练背肩！</p>
+                  <p className="text-xs text-slate-300 mt-1">
+                    今日安排：{todayPlanSummary?.classes?.length ? todayPlanSummary.classes.join('、') : '全天无坐班课'} · {todayPlanSummary?.workout || '自主学习与健身'}
+                  </p>
                 </div>
               </div>
 
@@ -807,7 +934,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* 四大指标卡片 */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="bg-white rounded-3xl p-4 sm:p-5 border border-slate-200/70 shadow-sm">
                 <div className="flex items-center justify-between mb-2">
@@ -875,16 +1001,15 @@ export default function App() {
                   <PiggyBank className="w-4 h-4 text-purple-600" />
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-slate-900">¥{Math.round(totalSpent)}</span>
-                  <span className="text-[11px] text-slate-400">/ 预算 ¥{state.wallet.budget}</span>
+                  <span className="text-2xl font-bold text-slate-900">¥{Math.round(savedMoney)}</span>
+                  <span className="text-[11px] text-slate-400">结余 (支出¥{Math.round(totalSpent)})</span>
                 </div>
                 <button onClick={() => setActiveTab('wallet')} className="mt-2 text-[11px] font-semibold text-purple-600 hover:underline">
-                  记一笔 / 兑换奖励 $\rightarrow$
+                  记收支 / 兑换奖励 $\rightarrow$
                 </button>
               </div>
             </div>
 
-            {/* 双栏：日程与宠物+提醒 */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               <div className="lg:col-span-2 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
                 <div className="flex items-center justify-between mb-4">
@@ -930,7 +1055,6 @@ export default function App() {
               </div>
 
               <div className="space-y-5">
-                {/* 陪伴宠物卡 */}
                 <div className="bg-gradient-to-br from-amber-50 via-orange-50/70 to-yellow-50/60 rounded-3xl p-5 border border-amber-200/80 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-xs font-bold text-amber-800 bg-amber-100/90 px-2.5 py-1 rounded-xl">陪伴激励宠物</span>
@@ -995,7 +1119,6 @@ export default function App() {
                   </div>
                 </div>
 
-                {/* 强提醒 */}
                 <div className="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="font-bold text-slate-900 text-sm flex items-center gap-1.5">
@@ -1029,7 +1152,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ==================== TAB 2: 餐前餐后双图热量 ==================== */}
         {activeTab === 'diet' && (
           <div className="space-y-5">
             <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
@@ -1059,7 +1181,7 @@ export default function App() {
                     )}
                     <input type="file" accept="image/*" className="hidden" onChange={(e) => handlePhotoUpload(e, 'pre')} />
                   </label>
-                  <input type="text" value={preDesc} onChange={(e) => setPreDesc(e.target.value)} className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white" />
+                  <input type="text" value={preDesc} onChange={(e) => setPreDesc(e.target.value)} placeholder="食物描述（可选）" className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white" />
                   <div className="flex items-center justify-between text-xs">
                     <span>餐前热量 (kcal):</span>
                     <input
@@ -1142,7 +1264,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* 今日已记录饮食明细（支持随时修改或删除） */}
             <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1219,79 +1340,234 @@ export default function App() {
           </div>
         )}
 
-        {/* ==================== TAB 3: 课表与健身 ==================== */}
         {activeTab === 'fitness' && (
-          <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm space-y-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">每周课表同步 (202319203061) & 1/3/5 健身联动</h2>
-                <p className="text-xs text-slate-500">上午 08:20-12:00 / 下午 14:00-17:40 连堂制，下课后 18:10 顺路减脂</p>
+          <div className="space-y-5">
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-900">每周课表同步 (202319203061) & 弹性健身联动</h2>
+                  <p className="text-xs text-slate-500">点击任意一天右上角的「编辑」可自由修改课程与健身安排</p>
+                </div>
+                <select
+                  value={selectedWeek}
+                  onChange={(e) => handleWeekChange(e.target.value)}
+                  className="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-semibold"
+                >
+                  <option value="week13">第13周 (11.23周一起 · 多媒体设计2 + 毕设)</option>
+                  <option value="week14_15">第14-15周 (学科综合设计二 + 多媒体设计2)</option>
+                  <option value="week16_19">第16-19周 (公共空间营造 · 裴磊)</option>
+                </select>
               </div>
-              <select
-                value={selectedWeek}
-                onChange={(e) => handleWeekChange(e.target.value)}
-                className="text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 font-semibold"
-              >
-                <option value="week13">第13周 (11.23周一起 · 多媒体设计2 + 毕设)</option>
-                <option value="week14_15">第14-15周 (学科综合设计二 + 多媒体设计2)</option>
-                <option value="week16_19">第16-19周 (公共空间营造 · 裴磊)</option>
-              </select>
+
+              <div className="flex flex-wrap items-center gap-2 pb-3 border-b border-slate-100">
+                <span className="text-xs font-semibold text-slate-500">健身方案调整：</span>
+                <button
+                  onClick={() => applyFitnessMode('normal')}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600 text-white shadow-sm hover:bg-rose-700 transition"
+                >
+                  1/3/5 18:10 下课顺路练
+                </button>
+                <button
+                  onClick={() => applyFitnessMode('shift')}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 transition"
+                >
+                  毕设冲突 $\rightarrow$ 平移周四/六
+                </button>
+                <button
+                  onClick={() => applyFitnessMode('dorm')}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-100 text-indigo-800 hover:bg-indigo-200 transition"
+                >
+                  室内宿舍35m跟练方案
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
+                {state.weekPlan.map((d, idx) => (
+                  <div key={d.day} className={`p-3.5 rounded-2xl border flex flex-col justify-between ${d.isWorkout ? 'bg-rose-50/50 border-rose-200' : 'bg-slate-50/70 border-slate-200/70'}`}>
+                    <div>
+                      <div className="flex items-center justify-between gap-1 mb-2">
+                        <span className="font-bold text-sm text-slate-900">{d.day}</span>
+                        <div className="flex items-center gap-1">
+                          <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${d.isWorkout ? 'bg-rose-500 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                            {d.isWorkout ? '训练日' : '自由'}
+                          </span>
+                          <button
+                            onClick={() => {
+                              setEditDayForm({
+                                idx,
+                                day: d.day,
+                                classesText: d.classes.join('\n'),
+                                workout: d.workout,
+                                isWorkout: d.isWorkout
+                              });
+                              setModalType('editDay');
+                            }}
+                            title="自由编辑当日课表与健身"
+                            className="p-1 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-500 hover:text-slate-900 transition"
+                          >
+                            <Pencil className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                      <div className="space-y-1 mb-2.5">
+                        {d.classes.length ? d.classes.map((c, i) => (
+                          <div key={i} className="text-[11px] bg-white px-2 py-1 rounded-lg border border-slate-200 text-slate-700">
+                            <GraduationCap className="w-3 h-3 inline mr-1 text-blue-500" />{c}
+                          </div>
+                        )) : <div className="text-[11px] text-emerald-600 font-medium">全天无课</div>}
+                      </div>
+                    </div>
+                    <div className="pt-2 border-t border-slate-200/60">
+                      <div className={`text-xs font-bold mb-2 ${d.isWorkout ? 'text-rose-700' : 'text-slate-600'}`}>{d.workout}</div>
+                      <button
+                        onClick={() => {
+                          const next = state.weekPlan.map((item, i) => (i === idx ? { ...item, done: !item.done } : item));
+                          setState((p) => ({ ...p, weekPlan: next }));
+                          if (!d.done) grantReward(35, 30, `完成${d.day}训练打卡！+35金币 & +1矿石`, 1);
+                        }}
+                        className={`w-full py-1.5 rounded-xl text-[11px] font-bold ${d.done ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}`}
+                      >
+                        {d.done ? '已打卡 (+35金币)' : '完成打卡'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-3">
-              {state.weekPlan.map((d, idx) => (
-                <div key={d.day} className={`p-3.5 rounded-2xl border flex flex-col justify-between ${d.isWorkout ? 'bg-rose-50/50 border-rose-200' : 'bg-slate-50/70 border-slate-200/70'}`}>
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">168cm · 61kg 专属减脂塑形与室内跟练教程指南</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">内置分部位动作组数，支持健身房器械与室内宿舍跟练一键跳转 B站 视频</p>
+                </div>
+                <span className="px-3 py-1 rounded-xl bg-rose-50 text-rose-700 text-xs font-bold">每次 35-55 分钟 · 燃脂约 350 kcal</span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="p-4 rounded-2xl bg-gradient-to-b from-rose-50/80 to-white border border-rose-200/80 flex flex-col justify-between">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="font-bold text-sm text-slate-900">{d.day}</span>
-                      <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${d.isWorkout ? 'bg-rose-500 text-white' : 'bg-slate-200 text-slate-600'}`}>
-                        {d.isWorkout ? '训练日' : '自由'}
-                      </span>
+                      <span className="px-2.5 py-0.5 rounded-lg bg-rose-600 text-white text-xs font-bold">周一 · 美背直角肩</span>
+                      <span className="text-[11px] text-slate-500">55 mins</span>
                     </div>
-                    <div className="space-y-1 mb-2.5">
-                      {d.classes.length ? d.classes.map((c, i) => (
-                        <div key={i} className="text-[11px] bg-white px-2 py-1 rounded-lg border border-slate-200 text-slate-700">
-                          <GraduationCap className="w-3 h-3 inline mr-1 text-blue-500" />{c}
-                        </div>
-                      )) : <div className="text-[11px] text-emerald-600 font-medium">全天无课</div>}
-                    </div>
+                    <ul className="text-xs text-slate-700 space-y-2 mt-3">
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-rose-600">01</span><span><strong>宽握高位下拉</strong>：4组 × 15次（改善圆肩穿衣显薄）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-rose-600">02</span><span><strong>坐姿划船</strong>：4组 × 15次（收紧中背部线条）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-rose-600">03</span><span><strong>哑铃侧平举+绳索下压</strong>：各3组 × 15次（紧致手臂）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-rose-600">04</span><span><strong>跑步机爬坡</strong>：坡度12 / 速度4.8 / 25分钟</span></li>
+                    </ul>
                   </div>
-                  <div className="pt-2 border-t border-slate-200/60">
-                    <div className={`text-xs font-bold mb-2 ${d.isWorkout ? 'text-rose-700' : 'text-slate-600'}`}>{d.workout}</div>
-                    <button
-                      onClick={() => {
-                        const next = state.weekPlan.map((item, i) => (i === idx ? { ...item, done: !item.done } : item));
-                        setState((p) => ({ ...p, weekPlan: next }));
-                        if (!d.done) grantReward(35, 30, `完成${d.day}训练打卡！+35金币 & +1矿石`, 1);
-                      }}
-                      className={`w-full py-1.5 rounded-xl text-[11px] font-bold ${d.done ? 'bg-emerald-600 text-white' : 'bg-white border border-slate-200 text-slate-700'}`}
-                    >
-                      {d.done ? '已打卡 (+35金币)' : '完成打卡'}
-                    </button>
-                  </div>
+                  <a
+                    href="https://search.bilibili.com/all?keyword=女生健身房背肩训练入门跟练"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold text-center transition block"
+                  >
+                    📺 B站美背直角肩跟练直达
+                  </a>
                 </div>
-              ))}
+
+                <div className="p-4 rounded-2xl bg-gradient-to-b from-amber-50/80 to-white border border-amber-200/80 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-amber-600 text-white text-xs font-bold">周三 · 蜜桃臀腿不粗腿</span>
+                      <span className="text-[11px] text-slate-500">55 mins</span>
+                    </div>
+                    <ul className="text-xs text-slate-700 space-y-2 mt-3">
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-amber-600">01</span><span><strong>哑铃高脚杯深蹲</strong>：4组 × 12次（调动大肌群燃脂）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-amber-600">02</span><span><strong>罗马尼亚硬拉</strong>：4组 × 15次（提升臀线紧致腿后侧）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-amber-600">03</span><span><strong>坐姿髋外展机</strong>：4组 × 20次（改善臀凹陷）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-amber-600">04</span><span><strong>椭圆机变速有氧</strong>：阻力6 / 25分钟（护膝刷脂）</span></li>
+                    </ul>
+                  </div>
+                  <a
+                    href="https://search.bilibili.com/all?keyword=女生健身房臀腿塑形不粗腿教程"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 w-full py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold text-center transition block"
+                  >
+                    📺 B站臀腿塑形不粗腿直达
+                  </a>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-gradient-to-b from-indigo-50/80 to-white border border-indigo-200/80 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-indigo-600 text-white text-xs font-bold">周五 · 核心马甲线</span>
+                      <span className="text-[11px] text-slate-500">50 mins</span>
+                    </div>
+                    <ul className="text-xs text-slate-700 space-y-2 mt-3">
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-indigo-600">01</span><span><strong>卷腹+反向卷腹超级组</strong>：4组 × 15次（上下腹雕刻）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-indigo-600">02</span><span><strong>平板支撑+俄罗斯转体</strong>：3组 × 45秒（收紧腰围）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-indigo-600">03</span><span><strong>壶铃摇摆间歇</strong>：4组 × 30秒（快速拉高心率）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-indigo-600">04</span><span><strong>全套泡沫轴放松拉伸</strong>：15分钟（消除水肿）</span></li>
+                    </ul>
+                  </div>
+                  <a
+                    href="https://search.bilibili.com/all?keyword=15分钟高效马甲线核心训练跟练"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold text-center transition block"
+                  >
+                    📺 B站马甲线核心训练直达
+                  </a>
+                </div>
+
+                <div className="p-4 rounded-2xl bg-gradient-to-b from-emerald-50/80 to-white border border-emerald-200/80 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="px-2.5 py-0.5 rounded-lg bg-emerald-600 text-white text-xs font-bold">室内宿舍 · 居家燃脂</span>
+                      <span className="text-[11px] text-slate-500">35 mins</span>
+                    </div>
+                    <ul className="text-xs text-slate-700 space-y-2 mt-3">
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-emerald-600">01</span><span><strong>帕梅拉/周六野热身+开合跳</strong>：4组 × 40秒</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-emerald-600">02</span><span><strong>自重深蹲+弓箭步蹲</strong>：4组 × 16次（宿舍瑜伽垫可做）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-emerald-600">03</span><span><strong>跪姿俯卧撑+W字背部伸展</strong>：3组 × 15次（瘦背消副乳）</span></li>
+                      <li className="flex items-start gap-1.5"><span className="font-bold text-emerald-600">04</span><span><strong>死虫式+仰卧单车</strong>：3组 × 40秒（紧致小腹）</span></li>
+                    </ul>
+                  </div>
+                  <a
+                    href="https://search.bilibili.com/all?keyword=周六野室内无跳跃燃脂跟练"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-4 w-full py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold text-center transition block"
+                  >
+                    📺 B站室内宿舍跟练直达
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         )}
 
-        {/* ==================== TAB 4: 消费与奖励 ==================== */}
         {activeTab === 'wallet' && (
           <div className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white p-5 rounded-3xl border border-slate-200/70 shadow-sm">
                 <div className="flex justify-between text-xs text-slate-500 mb-1">
-                  <span>本月支出 / 预算</span>
+                  <span>本月支出 / 预算+收入</span>
                   <button onClick={() => setModalType('budget')} className="text-purple-600 font-semibold hover:underline">修改预算</button>
                 </div>
-                <div className="text-2xl font-extrabold text-slate-900">¥{totalSpent.toFixed(1)} <span className="text-xs font-normal text-slate-400">/ ¥{state.wallet.budget}</span></div>
+                <div className="text-2xl font-extrabold text-slate-900">
+                  ¥{totalSpent.toFixed(1)}{' '}
+                  <span className="text-xs font-normal text-slate-400">
+                    / ¥{(state.wallet.budget + totalIncome).toFixed(0)} {totalIncome > 0 ? `(含收入¥${totalIncome.toFixed(0)})` : ''}
+                  </span>
+                </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
-                  <div className="bg-purple-600 h-full rounded-full" style={{ width: `${Math.min(100, (totalSpent / state.wallet.budget) * 100)}%` }} />
+                  <div
+                    className="bg-purple-600 h-full rounded-full"
+                    style={{ width: `${Math.min(100, (totalSpent / Math.max(1, state.wallet.budget + totalIncome)) * 100)}%` }}
+                  />
                 </div>
               </div>
 
               <div className="bg-emerald-50/70 p-5 rounded-3xl border border-emerald-200/80">
-                <div className="text-xs text-emerald-800 font-semibold mb-1">本月省钱净结余</div>
+                <div className="flex items-center justify-between text-xs text-emerald-800 font-semibold mb-1">
+                  <span>本月省钱净结余</span>
+                  <span className="text-emerald-700 font-bold">累计收入 +¥{totalIncome.toFixed(1)}</span>
+                </div>
                 <div className="text-2xl font-extrabold text-emerald-700">¥{savedMoney.toFixed(1)}</div>
                 <button
                   onClick={() => grantReward(30, 20, '忍住冲动消费！奖励 +30 自律金币！')}
@@ -1313,21 +1589,90 @@ export default function App() {
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
               <div className="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-slate-900">消费流水明细</h3>
-                  <button onClick={() => setModalType('expense')} className="text-xs px-3 py-1.5 rounded-xl bg-purple-600 text-white font-bold">+ 记一笔</button>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  <h3 className="font-bold text-slate-900">收支流水明细（可修改/删除）</h3>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => {
+                        setExpenseForm({ kind: 'income', title: '', amount: '500.0', category: '奖学金/兼职' });
+                        setModalType('expense');
+                      }}
+                      className="text-xs px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+                    >
+                      + 记收入
+                    </button>
+                    <button
+                      onClick={() => {
+                        setExpenseForm({ kind: 'expense', title: '', amount: '15.0', category: '健康餐饮' });
+                        setModalType('expense');
+                      }}
+                      className="text-xs px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold"
+                    >
+                      + 记支出
+                    </button>
+                  </div>
                 </div>
-                <div className="space-y-2 max-h-72 overflow-y-auto">
-                  {state.wallet.expenses.map((e) => (
-                    <div key={e.id} className="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between text-xs">
-                      <div>
-                        <div className="font-bold text-slate-800">{e.title}</div>
-                        <div className="text-[10px] text-slate-400">{e.category} · {e.date}</div>
-                      </div>
-                      <div className="font-extrabold text-slate-900">-¥{e.amount.toFixed(1)}</div>
-                    </div>
-                  ))}
-                </div>
+                {state.wallet.expenses.length === 0 ? (
+                  <div className="text-center py-8 text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    暂无收支流水，点击上方「+ 记收入」或「+ 记支出」开始记录~
+                  </div>
+                ) : (
+                  <div className="space-y-2 max-h-72 overflow-y-auto">
+                    {state.wallet.expenses.map((e) => {
+                      const isInc = e.kind === 'income';
+                      return (
+                        <div key={e.id} className="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 flex items-center justify-between gap-2 text-xs">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${isInc ? 'bg-emerald-100 text-emerald-700' : 'bg-purple-100 text-purple-700'}`}>
+                                {isInc ? '收入' : '支出'}
+                              </span>
+                              <span className="font-bold text-slate-800 truncate">{e.title}</span>
+                            </div>
+                            <div className="text-[10px] text-slate-400 mt-0.5">{e.category} · {e.date}</div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className={`font-extrabold ${isInc ? 'text-emerald-600' : 'text-slate-900'}`}>
+                              {isInc ? '+' : '-'}¥{e.amount.toFixed(1)}
+                            </span>
+                            <button
+                              onClick={() => {
+                                setEditTxForm({
+                                  id: e.id,
+                                  kind: e.kind || 'expense',
+                                  title: e.title,
+                                  amount: String(e.amount),
+                                  category: e.category
+                                });
+                                setModalType('editTx');
+                              }}
+                              className="p-1.5 rounded-lg bg-white hover:bg-amber-50 border border-slate-200 text-slate-500 hover:text-amber-700"
+                              title="修改记录"
+                            >
+                              <Pencil className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                setState((p) => ({
+                                  ...p,
+                                  wallet: {
+                                    ...p.wallet,
+                                    expenses: p.wallet.expenses.filter((item) => item.id !== e.id)
+                                  }
+                                }));
+                                notify('已删除该条收支记录', 'info');
+                              }}
+                              className="p-1.5 rounded-lg bg-white hover:bg-rose-50 border border-slate-200 text-slate-400 hover:text-rose-600"
+                              title="删除记录"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm">
@@ -1370,7 +1715,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ==================== TAB 5: 私人书架与阅读器 ==================== */}
         {activeTab === 'bookshelf' && (
           <div className="space-y-5">
             <div className="bg-white rounded-3xl p-5 border border-slate-200/70 shadow-sm flex flex-wrap items-center justify-between gap-4">
@@ -1399,7 +1743,6 @@ export default function App() {
             </div>
 
             <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
-              {/* 自主分类筛选栏 */}
               <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-4 border-b border-slate-100">
                 <button
                   onClick={() => setBookCat('all')}
@@ -1434,7 +1777,6 @@ export default function App() {
                 </button>
               </div>
 
-              {/* 书架列表 */}
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {state.books
                   .filter((b) => (bookCat === 'all' || b.category === bookCat) && (b.title.toLowerCase().includes(bookSearch.toLowerCase()) || b.author.toLowerCase().includes(bookSearch.toLowerCase())))
@@ -1482,7 +1824,6 @@ export default function App() {
           </div>
         )}
 
-        {/* ==================== TAB 6: 科研与 React + Three.js 3D ==================== */}
         {activeTab === 'academic' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
             <div className="lg:col-span-2 space-y-5">
@@ -1509,13 +1850,11 @@ export default function App() {
               </div>
             </div>
 
-            {/* 原生 Three.js 3D 渲染组件 */}
             <ThreeLabViewer />
           </div>
         )}
       </main>
 
-      {/* ==================== 手机端底部导航栏 ==================== */}
       <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-slate-200 px-1 py-1.5 flex items-center justify-around">
         {[
           { id: 'dashboard', label: '总览', icon: Compass },
@@ -1540,14 +1879,15 @@ export default function App() {
         })}
       </nav>
 
-      {/* ==================== 各类交互弹窗 ==================== */}
       {modalType && (
         <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4">
             <div className="flex items-center justify-between">
               <h3 className="text-base font-bold text-slate-900">
                 {modalType === 'voice' && '语音一句话调计划与记账'}
-                {modalType === 'expense' && '记一笔消费花销'}
+                {modalType === 'expense' && (expenseForm.kind === 'income' ? '记一笔收入进账' : '记一笔消费花销')}
+                {modalType === 'editTx' && '修改收支记录'}
+                {modalType === 'editDay' && `自由编辑 · ${editDayForm.day}`}
                 {modalType === 'budget' && '修改本月预算目标'}
                 {modalType === 'reward' && '上架专属自我奖励'}
                 {modalType === 'newCat' && '新建私人书架分类'}
@@ -1556,27 +1896,59 @@ export default function App() {
                 {modalType === 'backup' && 'React + Three.js 独立存档备份'}
                 {modalType === 'editMeal' && '修改饮食热量记录'}
               </h3>
-              <button onClick={() => setModalType(null)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
+              <button
+                onClick={() => {
+                  if (recognitionRef.current && isListeningVoice) recognitionRef.current.stop();
+                  setModalType(null);
+                }}
+                className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center"
+              >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {modalType === 'voice' && (
               <div className="space-y-3 text-xs">
+                <div className="flex flex-col items-center justify-center py-3 bg-slate-50 rounded-2xl border border-slate-200">
+                  <button
+                    type="button"
+                    onClick={toggleVoiceMic}
+                    className={`w-12 h-12 rounded-full text-white flex items-center justify-center shadow-md transition ${
+                      isListeningVoice ? 'bg-rose-600 animate-pulse' : 'bg-blue-600 hover:bg-blue-700'
+                    }`}
+                  >
+                    <Mic className="w-5 h-5" />
+                  </button>
+                  <span className="text-[11px] font-semibold text-slate-600 mt-2">
+                    {isListeningVoice ? '正在聆听语音，请直接说话...' : '点击麦克风直接说话，或在下方直接输入'}
+                  </span>
+                </div>
                 <textarea
                   rows={3}
                   value={voiceText}
-                  onChange={(e) => setVoiceText(e.target.value)}
-                  placeholder="例如：把今天雅思改到晚上九点，周一健身调到周二，取消睡前阅读，食堂花了14.5元..."
-                  className="w-full p-3 rounded-2xl border border-slate-200"
+                  onChange={(e) => {
+                    voiceTextRef.current = e.target.value;
+                    setVoiceText(e.target.value);
+                  }}
+                  placeholder="可直接说话或输入：把今天雅思改到晚上九点，周一健身调到周二，取消睡前阅读，食堂花了14.5元..."
+                  className="w-full p-3 rounded-2xl border border-slate-200 focus:outline-none focus:border-blue-500"
                 />
                 <button
-                  onClick={() => setVoiceText('把今天的雅思学习改到晚上九点，把周一的健身调到周二，另外取消睡前阅读，食堂花了14.5元')}
+                  type="button"
+                  onClick={() => {
+                    const sample = '把今天的雅思学习改到晚上九点，把周一的健身调到周二，另外取消睡前阅读，食堂花了14.5元';
+                    voiceTextRef.current = sample;
+                    setVoiceText(sample);
+                  }}
                   className="text-[11px] px-2.5 py-1.5 rounded-xl bg-blue-50 text-blue-700 text-left"
                 >
-                  点击填入示例语音指令
+                  点击填入示例指令（可选）
                 </button>
-                <button onClick={applyVoicePlan} className="w-full py-2.5 rounded-xl bg-blue-600 text-white font-bold">
+                <button
+                  type="button"
+                  onClick={() => applyVoicePlan()}
+                  className="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold"
+                >
                   AI 自动调计划并执行
                 </button>
               </div>
@@ -1584,9 +1956,25 @@ export default function App() {
 
             {modalType === 'expense' && (
               <div className="space-y-3 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpenseForm({ ...expenseForm, kind: 'expense', category: '健康餐饮' })}
+                    className={`py-2 rounded-xl font-bold border ${expenseForm.kind === 'expense' ? 'bg-purple-600 text-white border-purple-600' : 'bg-slate-50 text-slate-600 border-slate-200'}`}
+                  >
+                    支出花销
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setExpenseForm({ ...expenseForm, kind: 'income', category: '奖学金/兼职' })}
+                    className={`py-2 rounded-xl font-bold border ${expenseForm.kind === 'income' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-50 text-slate-600 border-slate-200'}`}
+                  >
+                    收入进账
+                  </button>
+                </div>
                 <input
                   type="text"
-                  placeholder="消费项目（如：黄家湖二食堂晚餐）"
+                  placeholder={expenseForm.kind === 'income' ? '收入来源（如：研究生补助/兼职/生活费）' : '消费项目（如：黄家湖二食堂晚餐）'}
                   value={expenseForm.title}
                   onChange={(e) => setExpenseForm({ ...expenseForm, title: e.target.value })}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200"
@@ -1604,28 +1992,162 @@ export default function App() {
                   onChange={(e) => setExpenseForm({ ...expenseForm, category: e.target.value })}
                   className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white"
                 >
-                  {['健康餐饮', '书籍学习', '健身运动', '日用服饰', '零食饮料'].map((c) => (
+                  {(expenseForm.kind === 'income'
+                    ? ['奖学金/兼职', '家人生活费', '闲置变现', '其他收入']
+                    : ['健康餐饮', '书籍学习', '健身运动', '日用服饰', '零食饮料']
+                  ).map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
                 <button
                   onClick={() => {
                     const amt = parseFloat(expenseForm.amount);
-                    if (!expenseForm.title.trim() || !amt) return;
+                    if (!expenseForm.title.trim() || !amt || amt <= 0) return;
                     setState((p) => ({
                       ...p,
                       wallet: {
                         ...p.wallet,
-                        expenses: [{ id: Date.now(), title: expenseForm.title.trim(), amount: amt, category: expenseForm.category, date: '刚刚' }, ...p.wallet.expenses]
+                        expenses: [
+                          {
+                            id: Date.now(),
+                            kind: expenseForm.kind,
+                            title: expenseForm.title.trim(),
+                            amount: amt,
+                            category: expenseForm.category,
+                            date: '刚刚'
+                          },
+                          ...p.wallet.expenses
+                        ]
                       }
                     }));
-                    setExpenseForm({ title: '', amount: '15.0', category: '健康餐饮' });
+                    setExpenseForm({ kind: 'expense', title: '', amount: '15.0', category: '健康餐饮' });
                     setModalType(null);
-                    notify(`已记录消费 ¥${amt.toFixed(1)}`, 'success');
+                    notify(
+                      expenseForm.kind === 'income'
+                        ? `已记录收入 +¥${amt.toFixed(1)}，结余已增加！`
+                        : `已记录支出 -¥${amt.toFixed(1)}`,
+                      'success'
+                    );
                   }}
-                  className="w-full py-2.5 rounded-xl bg-purple-600 text-white font-bold"
+                  className={`w-full py-2.5 rounded-xl text-white font-bold ${expenseForm.kind === 'income' ? 'bg-emerald-600' : 'bg-purple-600'}`}
                 >
                   确认保存
+                </button>
+              </div>
+            )}
+
+            {modalType === 'editTx' && (
+              <div className="space-y-3 text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditTxForm({ ...editTxForm, kind: 'expense' })}
+                    className={`py-2 rounded-xl font-bold border ${editTxForm.kind === 'expense' ? 'bg-purple-600 text-white border-purple-600' : 'bg-slate-50 text-slate-600 border-slate-200'}`}
+                  >
+                    支出
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditTxForm({ ...editTxForm, kind: 'income' })}
+                    className={`py-2 rounded-xl font-bold border ${editTxForm.kind === 'income' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-slate-50 text-slate-600 border-slate-200'}`}
+                  >
+                    收入
+                  </button>
+                </div>
+                <input
+                  type="text"
+                  value={editTxForm.title}
+                  onChange={(e) => setEditTxForm({ ...editTxForm, title: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200"
+                />
+                <input
+                  type="number"
+                  step="0.1"
+                  value={editTxForm.amount}
+                  onChange={(e) => setEditTxForm({ ...editTxForm, amount: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200 font-bold"
+                />
+                <input
+                  type="text"
+                  value={editTxForm.category}
+                  onChange={(e) => setEditTxForm({ ...editTxForm, category: e.target.value })}
+                  className="w-full px-3 py-2.5 rounded-xl border border-slate-200"
+                />
+                <button
+                  onClick={() => {
+                    const amt = parseFloat(editTxForm.amount);
+                    if (!editTxForm.title.trim() || !amt || amt <= 0) return;
+                    setState((p) => ({
+                      ...p,
+                      wallet: {
+                        ...p.wallet,
+                        expenses: p.wallet.expenses.map((item) =>
+                          item.id === editTxForm.id
+                            ? { ...item, kind: editTxForm.kind, title: editTxForm.title.trim(), amount: amt, category: editTxForm.category }
+                            : item
+                        )
+                      }
+                    }));
+                    setModalType(null);
+                    notify('收支记录已修正！', 'success');
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-amber-500 text-white font-bold"
+                >
+                  保存修改
+                </button>
+              </div>
+            )}
+
+            {modalType === 'editDay' && (
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">当日课程安排（每行一门课，留空表示全天无课）</label>
+                  <textarea
+                    rows={3}
+                    value={editDayForm.classesText}
+                    onChange={(e) => setEditDayForm({ ...editDayForm, classesText: e.target.value })}
+                    placeholder="例如：14:00-17:40 多媒体设计2 (教一二区603)"
+                    className="w-full p-3 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">当日健身 / 活动计划</label>
+                  <input
+                    type="text"
+                    value={editDayForm.workout}
+                    onChange={(e) => setEditDayForm({ ...editDayForm, workout: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={editDayForm.isWorkout}
+                    onChange={(e) => setEditDayForm({ ...editDayForm, isWorkout: e.target.checked })}
+                    className="w-4 h-4 accent-rose-600 rounded"
+                  />
+                  <span className="font-semibold text-slate-700">标记为重点减脂训练日</span>
+                </label>
+                <button
+                  onClick={() => {
+                    const clsArr = editDayForm.classesText
+                      .split(/\n+/)
+                      .map((s) => s.trim())
+                      .filter(Boolean);
+                    setState((p) => ({
+                      ...p,
+                      weekPlan: p.weekPlan.map((d, i) =>
+                        i === editDayForm.idx
+                          ? { ...d, classes: clsArr, workout: editDayForm.workout.trim() || '自由活动', isWorkout: editDayForm.isWorkout }
+                          : d
+                      )
+                    }));
+                    setModalType(null);
+                    notify(`已更新 ${editDayForm.day} 的课表与健身计划！`, 'success');
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-rose-600 text-white font-bold"
+                >
+                  保存当日安排
                 </button>
               </div>
             )}
@@ -1957,7 +2479,6 @@ export default function App() {
         </div>
       )}
 
-      {/* ==================== 内置沉浸式电子书阅读器（支持全屏模式、翻页、目录跳转与自动保存进度） ==================== */}
       {activeBook && (() => {
         const bookPages = buildBookPages(activeBook.content);
         const totalPages = bookPages.length;
@@ -1977,7 +2498,6 @@ export default function App() {
                   : 'bg-[#181a1f] text-slate-200'
               }`}
             >
-              {/* 顶部控制栏（全屏下点击正文可自动隐藏/呼出） */}
               {!hideReaderChrome && (
                 <div className="px-4 pt-[max(12px,env(safe-area-inset-top))] pb-3 border-b border-black/10 flex flex-wrap items-center justify-between gap-2 shrink-0">
                   <div className="flex items-center gap-2">
@@ -2029,7 +2549,6 @@ export default function App() {
                 </div>
               )}
 
-              {/* 章节目录抽屉（支持一键跳转） */}
               {showTocDrawer && (
                 <div className="absolute top-14 left-3 bottom-16 w-64 sm:w-72 bg-white/95 backdrop-blur-md text-slate-800 rounded-2xl shadow-2xl border border-slate-200 z-20 flex flex-col overflow-hidden">
                   <div className="p-3 border-b border-slate-100 flex items-center justify-between">
@@ -2060,7 +2579,6 @@ export default function App() {
                 </div>
               )}
 
-              {/* 正文阅读区（自适应单屏不滚动、支持左/中/右三区点按翻页与左右滑动手势） */}
               <div
                 ref={readerScrollRef}
                 onTouchStart={(e) => {
@@ -2103,7 +2621,6 @@ export default function App() {
                         ))}
                       </div>
 
-                      {/* 翻页控制栏 */}
                       <div className="pt-3 mt-2 border-t border-black/10 flex items-center justify-between gap-2 text-xs shrink-0">
                         <button
                           disabled={safePageIdx <= 0}
@@ -2144,7 +2661,6 @@ export default function App() {
                 </div>
               </div>
 
-              {/* 底部进度与批注栏 */}
               {!hideReaderChrome && (
                 <div className="px-4 py-3 border-t border-black/10 flex flex-wrap items-center justify-between gap-2 text-xs shrink-0">
                   <div className="flex items-center gap-2">
