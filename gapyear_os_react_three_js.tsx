@@ -4,7 +4,7 @@ import {
   Compass, Camera, Dumbbell, Wallet, BookOpen, Box, Mic, Coins,
   MapPin, Flame, Scale, PiggyBank, Bell, Check, Plus, Trash2,
   FolderPlus, ArrowLeft, Clock, X, Download, Upload, Sparkles,
-  Heart, Gift, Trophy, Search, FileText, GraduationCap, Maximize2, Minimize2
+  Heart, Gift, Trophy, Search, FileText, GraduationCap, Maximize2, Minimize2, Pencil
 } from 'lucide-react';
 
 const STORAGE_KEY = 'gapyear_os_react_huqiuyi_clean_v3';
@@ -333,6 +333,7 @@ export default function App() {
   const [newCatInput, setNewCatInput] = useState('');
   const [newBookForm, setNewBookForm] = useState({ title: '', author: '', category: '地大专业', content: '' });
   const [newDDLForm, setNewDDLForm] = useState({ title: '', due: '本周五 22:00' });
+  const [editMealForm, setEditMealForm] = useState({ id: null, type: '午餐 (12:30)', desc: '', preCal: 0, leftoverCal: 0 });
 
   // 自动保存到 localStorage
   useEffect(() => {
@@ -1140,6 +1141,81 @@ export default function App() {
                 </div>
               </div>
             </div>
+
+            {/* 今日已记录饮食明细（支持随时修改或删除） */}
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200/70 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">今日饮食热量明细（记错了可随时修改或删除）</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    当前累计净摄入 <strong className="text-slate-800">{totalNetCal} kcal</strong> / 目标 {state.calories.target} kcal（剩余 {Math.max(0, state.calories.target - totalNetCal)} kcal）
+                  </p>
+                </div>
+              </div>
+
+              {state.calories.meals.length === 0 ? (
+                <div className="text-center py-8 text-xs text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  今日暂未记录任何饮食，上方结算后会自动出现在这里~
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {state.calories.meals.map((meal) => (
+                    <div
+                      key={meal.id}
+                      className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-wrap sm:flex-nowrap items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-slate-900">{meal.type}</span>
+                          <span className="text-[11px] text-slate-400">{meal.time}</span>
+                        </div>
+                        <div className="text-xs text-slate-600 truncate mt-0.5">{meal.desc || '未填写餐食描述'}</div>
+                      </div>
+
+                      <div className="flex items-center gap-3 shrink-0">
+                        <div className="text-right">
+                          <div className="text-sm font-extrabold text-slate-900">{meal.netCal} kcal</div>
+                          <div className="text-[10px] text-emerald-600">
+                            餐前 {meal.preCal} - 剩 {meal.leftoverCal}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setEditMealForm({
+                              id: meal.id,
+                              type: meal.type,
+                              desc: meal.desc || '',
+                              preCal: meal.preCal,
+                              leftoverCal: meal.leftoverCal
+                            });
+                            setModalType('editMeal');
+                          }}
+                          className="px-2.5 py-1.5 rounded-xl bg-white hover:bg-amber-50 text-amber-700 border border-slate-200 hover:border-amber-300 text-xs font-bold flex items-center gap-1 transition"
+                        >
+                          <Pencil className="w-3 h-3" />修改
+                        </button>
+                        <button
+                          onClick={() => {
+                            setState((prev) => ({
+                              ...prev,
+                              calories: {
+                                ...prev.calories,
+                                meals: prev.calories.meals.filter((m) => m.id !== meal.id)
+                              }
+                            }));
+                            notify('已删除该条饮食记录，今日总热量已同步重算', 'info');
+                          }}
+                          className="p-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 hover:border-rose-200 transition"
+                          title="删除记录"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -1478,6 +1554,7 @@ export default function App() {
                 {modalType === 'addBook' && '录入新书或导入完整电子书'}
                 {modalType === 'ddl' && '新增课业强提醒'}
                 {modalType === 'backup' && 'React + Three.js 独立存档备份'}
+                {modalType === 'editMeal' && '修改饮食热量记录'}
               </h3>
               <button onClick={() => setModalType(null)} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">
                 <X className="w-4 h-4" />
@@ -1741,6 +1818,83 @@ export default function App() {
                   className="w-full py-2.5 rounded-xl bg-rose-600 text-white font-bold"
                 >
                   添加提醒
+                </button>
+              </div>
+            )}
+
+            {modalType === 'editMeal' && (
+              <div className="space-y-3 text-xs">
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">餐次</label>
+                  <select
+                    value={editMealForm.type}
+                    onChange={(e) => setEditMealForm({ ...editMealForm, type: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200 bg-white"
+                  >
+                    <option value="早午餐 (09:30)">早午餐 (09:30)</option>
+                    <option value="午餐 (12:30)">午餐 (12:30)</option>
+                    <option value="晚餐 (18:30)">晚餐 (18:30)</option>
+                    <option value="夜宵低卡加餐">夜宵低卡加餐</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-600 font-semibold mb-1">餐食描述</label>
+                  <input
+                    type="text"
+                    value={editMealForm.desc}
+                    onChange={(e) => setEditMealForm({ ...editMealForm, desc: e.target.value })}
+                    placeholder="输入食物内容..."
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-slate-600 font-semibold mb-1">餐前总热量 (kcal)</label>
+                    <input
+                      type="number"
+                      value={editMealForm.preCal}
+                      onChange={(e) => setEditMealForm({ ...editMealForm, preCal: Number(e.target.value) || 0 })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 font-bold"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-600 font-semibold mb-1">剩饭扣除 (kcal)</label>
+                    <input
+                      type="number"
+                      value={editMealForm.leftoverCal}
+                      onChange={(e) => setEditMealForm({ ...editMealForm, leftoverCal: Number(e.target.value) || 0 })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-slate-200 font-bold text-emerald-700"
+                    />
+                  </div>
+                </div>
+                <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between">
+                  <span className="text-amber-900 font-semibold">修正后实际净摄入：</span>
+                  <span className="text-base font-extrabold text-amber-800">
+                    {Math.max(0, Number(editMealForm.preCal) - Number(editMealForm.leftoverCal))} kcal
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    const pre = Math.max(0, Number(editMealForm.preCal) || 0);
+                    const left = Math.max(0, Number(editMealForm.leftoverCal) || 0);
+                    const net = Math.max(0, pre - left);
+                    setState((prev) => ({
+                      ...prev,
+                      calories: {
+                        ...prev.calories,
+                        meals: prev.calories.meals.map((m) =>
+                          m.id === editMealForm.id
+                            ? { ...m, type: editMealForm.type, desc: editMealForm.desc, preCal: pre, leftoverCal: left, netCal: net }
+                            : m
+                        )
+                      }
+                    }));
+                    setModalType(null);
+                    notify(`热量记录已修正为 ${net} kcal！`, 'success');
+                  }}
+                  className="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold"
+                >
+                  保存修正并重算今日热量
                 </button>
               </div>
             )}
